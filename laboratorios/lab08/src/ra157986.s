@@ -1,36 +1,46 @@
-@ Henrique Noronha Facioli - MC404
+@ Henrique Noronha Facioli
 
-@ Beginnig
+@@@ All teh sets @@@
+@ System time
+.set TIME_SZ,               100
+@ GPT Constants
+.set GPT_BASE,              0x53FA0000
+.set GPT_CR,                0x00
+.set GPT_PR,                0x04
+.set GPT_SR,                0x08
+.set GPT_IR,                0x0C
+.set GPT_OCR1,              0x10
+.set GPT_CR_VALUE,          0x00000041
+@ TZIC Constants
+.set TZIC_BASE,             0x0FFFC000
+.set TZIC_INTCTRL,          0x0
+.set TZIC_INTSEC1,          0x84
+.set TZIC_ENSET1,           0x104
+.set TZIC_PRIOMASK,         0xC
+.set TZIC_PRIORITY9,        0x424
+
+
+@@@ Start @@@
 .org 0x0
 .section .iv,"a"
 
 _start:
 
 interrupt_vector:
-
     b RESET_HANDLER
+
 .org 0x18
     b IRQ_HANDLER
 
 
-.data 
-CONTADOR: .word 0x0 
+.data
+TIME_COUNTER: .word 0x0
 
 @ Vetor de interrupções
 .org 0x100
 .text
 
-
 RESET_HANDLER:
-    @ GPT definitions
-    .set GPT_BASE,              0x53FA0000
-    .set GPT_CR,                0x00
-    .set GPT_PR,                0x04
-    .set GPT_SR,                0x08
-    .set GPT_IR,                0x0C
-    .set GPT_OCR1,              0x10
-    .set GPT_CR_VALUE,          0x00000041
-
     @ Zera o contador
     ldr r2, =CONTADOR  @lembre-se de declarar esse contador em uma secao de dados!
     mov r0,#0
@@ -40,6 +50,8 @@ RESET_HANDLER:
     ldr r0, =interrupt_vector
     mcr p15, 0, r0, c12, c0, 0
 
+
+SET_GPT:
     @Send data do GPT hardware
     @ Load the first adress of GPT on r1
     ldr	r1, =GPT_BASE
@@ -51,8 +63,9 @@ RESET_HANDLER:
     ldr r0, =0
     str r0, [r1, #GPT_PR]
 
-    @ Value to compare
-    ldr r0, =100
+    @ Value to compare, this is incremented all the cycles of the processor
+    @ as the processor clock is 200MHz, we shoul compare to 200*10^6 to 1s
+    ldr r0, =TIME_SZ
     str r0, [r1, #GPT_OCR1]
 
     @Enabling Output Compare Channel 1 interrupt
@@ -62,14 +75,6 @@ RESET_HANDLER:
 
 @ Código TZIC
 SET_TZIC:
-    @ Constantes para os enderecos do TZIC
-    .set TZIC_BASE,             0x0FFFC000
-    .set TZIC_INTCTRL,          0x0
-    .set TZIC_INTSEC1,          0x84
-    .set TZIC_ENSET1,           0x104
-    .set TZIC_PRIOMASK,         0xC
-    .set TZIC_PRIORITY9,        0x424
-
     @ Liga o controlador de interrupcoes
     @ R1 <= TZIC_BASE
     ldr	r1, =TZIC_BASE
@@ -109,13 +114,13 @@ IRQ_HANDLER:
     stmfd sp!, {r4-r11, lr}
 
     @ Increment the counter
-    ldr r2, =CONTADOR
-    ldr r0, [r2]
-    add r0, r0, #0x1
-    str r0, [r2]
+    ldr r2, =TIME_COUNTER           @Load the TIME_COUNTER adress on r2
+    ldr r0, [r2]                    @load in r0 the value of r2 adress
+    add r0, r0, #0x1                @increment in 1 TIME_COUNTER
+    str r0, [r2]                    @store it in the r2 adress
 
-    ldmfd sp!, {r4, r11, lr}
+    ldmfd sp!, {r4-r11, lr}
 
-    @ Subtract 4 of lr
+    @ Subtract lr of 4
     sub lr, lr, #4
     movs pc, lr
