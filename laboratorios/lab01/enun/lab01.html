@@ -1,0 +1,410 @@
+<!--?xml version="1.0" encoding="UTF-8"?-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><head>
+    <link href="lab01_files/bootstrap.css" rel="stylesheet">
+    <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8" charset="utf-8">
+  </head>
+
+  <body style="background: transparent; margin: 0pt">
+    
+    <div class="row-fluid">
+      
+
+      <h2>Atividade de Laboratório 1</h2>
+
+      <h3>Objetivos</h3>
+
+      <p>
+	O objetivo desta atividade é a familiarização com as ferramentas e o
+	ambiente de trabalho da disciplina.
+      </p>
+
+      <h3>Descrição</h3>
+
+      <p>
+	Este documento contém informações sobre como funciona o
+	processo de compilação do <i>software</i> com mais detalhes. 
+	Ele também o auxiliará na tarefa de organizar e automatizar um processo
+	de compilação que envolve várias etapas. Neste
+	processo, você irá perceber que o programa fica gradativamente
+	mais próximo da linguagem de máquina até o momento em que
+	um arquivo com as instruções que o processador irá executar é
+	criado, o executável.
+      </p>
+      <p>
+	Como estudo de caso, crie um arquivo com um programa em código C de
+	nome ola.c. O conteúdo do arquivo deve ser:
+      </p>
+      <pre>  #include &lt;stdio.h&gt;
+  
+  int main () {
+    printf("Ola!\n");
+    return 0;
+  }</pre>
+
+      <p>
+	Para compilar o programa C apresentado, a abordagem mais
+	simples é utilizar, em um terminal do linux, a seguinte linha de
+	comando para invocar o programa <b>gcc</b>:
+      </p>
+      <pre>usuario@maquina$ gcc ola.c -o ola.x</pre>
+      
+      <p>
+	O <b>gcc</b> irá compilar o programa fonte <tt>ola.c</tt>
+	produzindo o programa executável <tt>ola.x</tt>. O programa
+	executável é uma representação do programa pronta para ser
+	executada pelo sistema. Ele possui trechos de código em
+	linguagem de máquina (prontos para serem executados pelo
+	processador), informações sobre o ponto de entrada do programa
+	(a primeira função que deve ser chamada ao iniciar-se a
+	execução), as constantes do programa e outras
+	informações. Para executar este programa basta digitar o
+	caminho completo do executável (pode ser <tt>./</tt> se
+	estiver no mesmo diretório) e teclar ENTER. Por exemplo:
+      </p>
+      <pre>  usuario@maquina$ ./ola.x
+  Ola!
+  usuario@maquina$</pre>
+
+      <p>
+	Os passos acima sugerem que o programa <tt>gcc</tt> converteu
+	o programa em linguagem de alto nível (linguagem C)
+	diretamente para um programa em linguagem de
+	máquina. Entretanto, o <tt>gcc</tt> é na verdade um programa 
+	que articula a chamada de diversos outros programas para realizar
+	a compilação do código fonte. Nesta
+	disciplina, você irá se familiarizar com a construção de 
+	<i>softwares</i> em nível mais baixo do que o da linguagem
+	C. Para isso, você deve entender quais as etapas realizadas
+	pelo <tt>gcc</tt> até chegar na linguagem de máquina, aquela
+	que realmente é entendida pelo processador no momento de
+	executar seu programa.
+      </p>
+
+      <h4>O <i>toolchain</i> GNU</h4>
+
+      <p>
+	<i>Toolchain</i> é o conjunto de ferramentas do compilador
+	para produzir <i>software</i> para um sistema (no nosso caso,
+	um desktop compatível com a arquitetura Intel x86). Todo
+	compilador começa por traduzir cada arquivo de linguagem C
+	para código de linguagem de montagem (arquivos com a
+	extensão <tt>.s</tt> no Linux ou <tt>.asm</tt> na maioria dos
+	compiladores Windows). Geralmente o compilador produz um
+	arquivo em linguagem de montagem para cada arquivo fonte, em
+	linguagem de alto nível.  Em seguida, uma ferramenta chamada
+	"montador" (ou <i>assembler</i>, em inglês) lerá os arquivos
+	em linguagem de montagem e produzirá um código objeto
+	(extensão <tt>.o</tt> no Linux ou <tt>.obj</tt> na maioria dos
+	compiladores Windows), que possuem código em linguagem de
+	máquina.  Existe um arquivo objeto para cada arquivo com
+	linguagem de montagem. Note que um <i>software</i> grande pode
+	conter diversos arquivos de código-fonte, o que irá levar a
+	vários arquivos objeto durante o processo de
+	compilação. Apesar de possuir código em linguagem de máquin,
+	os arquivos objetos não são executáveis, pois o código binário
+	ainda está separado em diversos arquivos objetos e precisa ser
+	"ligado" em um único arquivo, que contenha todo o código. Dessa forma,
+	a etapa final consiste em "ligar" todos os arquivos objeto em um
+	único arquivo final, o executável. Essa etapa é realizada pelo
+	ligador (<i>linker</i>, em inglês).
+      </p>
+
+      <p>
+	O ligador irá ler diversos arquivos objeto como entrada,
+	ligá-los entre si, e também incluir código de bibliotecas que
+	você usa. Um exemplo clássico de biblioteca é a biblioteca
+	padrão C (no Linux, é a <tt>glibc</tt> ou <i>GNU C
+	Library</i>). Ela contém, por exemplo, a implementação da função
+	<tt>printf()</tt> usada por nosso programa. Sem o trabalho do
+	ligador, nosso programa não conseguiria chamar a função
+	<tt>printf</tt>. Após conectar todos os módulos e bibliotecas
+	e fundí-los em um mesmo arquivo, o resultado é o executável
+	final, o programa que pode ser executado pelo usuário.  A
+	Figura 1 ilustra o processo de compilação de
+	um <i>software</i> com dois arquivos fontes: <tt>fonte1.c</tt>
+	e <tt>fonte2.c</tt>.
+      </p>
+
+      <center>
+      <img src="lab01_files/framework.png" style="width:562px;height:156px">
+      <p>
+	Figura 1: O processo de compilação de um programa utilizando as
+	ferramentas da GNU.
+      </p>
+      </center>
+
+
+      <h4>Exercício</h4>
+
+      <p>
+	Você deverá percorrer o processo de compilação executando cada 
+	programa individualmente (compilador C,
+	montador e ligador) até chegar no executável final do programa. O
+	código fonte que você irá utilizar contém dois arquivos C, chamados <tt>arquivo1.c</tt> e <tt>arquivo2.c</tt>  com o
+	seguinte conteúdo:
+      </p>
+      
+      <p>
+	<tt>arquivo1.c</tt>
+	</p><pre>#include &lt;stdio.h&gt;
+
+void funcao();
+
+int main() {
+    printf("Ola!\n");
+    funcao();
+    printf("Adeus!\n");
+    return 0;
+}</pre>
+      <p></p>
+      <p>
+<tt>arquivo2.c</tt>
+      </p><pre>#include &lt;stdio.h&gt;
+
+void funcao() {
+    printf("Estou no arquivo 2!\n");
+}
+</pre>
+      <p></p>
+
+      <p>
+	Você deverá fazer o processo uma vez manualmente, depois
+	automatizar o processo com um script <tt>makefile</tt>. Crie
+	uma regra para cada arquivo intermediário, até chegar no
+	arquivo final. Execute a regra final e veja o que acontece.
+      </p>
+
+      <h5>Tarefa 1</h5>
+
+      <p>
+	Para compilar um código-fonte C e produzir o código em linguagem de
+	montagem <tt>.s</tt> utilize:
+      </p>
+      <pre>    gcc -S arquivo.c -o arquivo.s</pre>
+      
+      <p>
+	Você pode verificar o conteúdo do arquivo <tt>arquivo.s</tt>
+	abrindo em seu editor favorito. Ele é um arquivo texto e
+	contém o mesmo programa que você escreveu em C, porém
+	transcrito em linguagem de montagem para o processador de
+	arquitetura Intel x86. Note que a linguagem de montagem faz
+	referência a instruções (<tt>add</tt>, <tt>mov</tt>, etc.) e
+	outros elementos específicos de cada tipo de processador,
+	sendo assim dependente da interface do mesmo. Para converter o
+	código em linguagem de montagem para linguagem de máquina use
+	o montador (<i>assembler</i>):
+      </p>
+      <pre>    as arquivo.s -o arquivo.o</pre>
+
+      <p>
+	Você não pode abrir o arquivo produzido (arquivo.o) em seu
+	editor de texto, pois é um arquivo binário em linguagem de
+	máquina.  Para analisar esse arquivo, você precisa de
+	programas especiais chamados "desmontadores", que interpretam
+	o conteúdo do arquivo e convertem sua representação para
+	texto. Você pode utilizar a ferramenta
+	<tt>objdump</tt> para desmontar o arquivo binário em linguagem
+	de máquina. Tente <tt>objdump -D arquivo.o</tt> e compare o
+	resultado com o arquivo em linguagem de montagem produzido pelo
+	compilador (<tt>arquivo.s</tt>).  Em seguida, você precisa
+	ligar todos os outros módulos para produzir o executável final
+	utlizando o ligador. Utilize:
+      </p>
+      <pre>    ld -dynamic-linker /lib64/ld-linux-x86-64.so.2 /usr/lib64/crt1.o
+    /usr/lib64/crti.o -L/usr/lib64 arquivo1.o arquivo2.o [...] -lc
+    /usr/lib64/crtn.o -o saida.x
+      </pre>
+
+      <p>
+	NOTA: apesar de ser mostrado em três linhas, a linha de
+	comando acima não pode ter quebra de linhas, ou seja, é uma
+	única linha de comando. <tt>ld</tt> é o nome do ligador
+	(<tt>linker</tt>) e o restante são parâmetros para o mesmo,
+	incluindo os arquivos <tt>arquivo1.o</tt>
+      </p>
+
+      <p>
+	O parâmetro <tt>-L</tt> não adiciona módulos ao seu programa,
+	mas apenas especifica uma pasta onde encontrar bibliotecas
+	(esse caminho pode variar entre distribuições Linux). O
+	parâmetro <tt>-lc</tt>, por sua vez, informa que a biblioteca
+	C é necessária. Os outros arquivos objeto <tt>.o</tt> (ponto
+	ó) mencionados acima são pequenos módulos auxiliares
+	necessários para todo programa em linguagem C. O trecho
+	<tt>[...]</tt> não pode ser digitado na linha de comando. Ele
+	apenas informa que você pode colocar quantos arquivos objeto
+	<tt>.o</tt> quiser. Os arquivos objeto fornecidos como
+	parâmetro são dispostos no executável final na mesma ordem dos
+	parâmetros, por isso o <tt>crtn.o</tt>, que compreende
+	comandos de finalização do suporte em tempo de execução C
+	(<i>C RunTime - eNd</i>), aparece por último, e o
+	<tt>crt1.o</tt>, que compreende a inicialização do <i>C
+	runtime</i> aparece primeiro.
+      </p>
+
+      <p>
+	Note que o <tt>gcc</tt> é um programa que invoca
+	outros programas por você e já provê os parâmetros corretos
+	para o ligador (<tt>ld</tt>). Nesse caso, como estamos
+	contruindo o programa sem o auxílio do <tt>gcc</tt>, nós precisamos
+	passar todos os módulos adicionais que devem ser ligados ao
+	seu executável para que ele funcione. Na dúvida, você pode
+	adicionar a <i>flag</i> <tt>-v</tt> na linha de comando do <tt>gcc</tt>
+	para visualizar todos os comandos
+	executados pelo <tt>gcc</tt> durante a compilação. Na disciplina, quando
+	estiver criando programas diretamente em linguagem de montagem
+	(arquivos <tt>.s</tt>), você pode usar apenas as
+	ferramentas <tt>as</tt> e
+	<tt>ld</tt>, sem a necessidade do <tt>gcc</tt>.  O arquivo
+	<tt>saida.x</tt> será o programa executável e pode ser executado
+	com o comando:
+      </p>
+      <pre>   ./saida.x</pre>
+
+      <h4>GNU makefile</h4>
+
+      <p>
+	O processo de desenvolvimento de <i>software</i> envolve
+	diversas iterações de correções de <i>bugs</i> e
+	recompilações. Entretanto, muitos destes projetos possuem uma
+	quantidade grande de arquivos de programa e a compilação de
+	todos os arquivos é um processo lento.  Os
+	arquivos <tt>.o</tt> precisam ser ligados novamente para
+	formar o novo binário, no entanto, apenas os arquivos
+	modificados precisam ser recompilados. Dessa forma é
+	importante ter um mecanismo automático para recompilar apenas
+	os arquivos necessários. Para isso, existe uma modalidade
+	de <i>script</i> específica para automatizar a
+	compilação de <i>softwares</i>. O <tt>GNU makefile</tt> é um
+	exemplo largamente utilizado no mundo GNU/Linux.
+      </p>
+
+      <p>
+	Para fazer o seu próprio <i>script</i> que irá orientar o <tt>GNU
+	make</tt> a construir o seu programa, você deve especificar em um
+	arquivo texto chamado <tt>Makefile</tt>, que deve estar na
+	mesma pasta dos códigos-fonte, contendo regras para a criação
+	de cada arquivo. Por exemplo, você deve especificar como o
+	arquivo <tt>.s</tt> (em linguagem de montagem) é criado
+	(utilizando o compilador gcc), especificar como os arquivos
+	objetos <tt>.o</tt> (códigos objeto) são criados (utilizando o
+	montador) e assim em diante.  Exemplo de criação de regras:
+      </p>
+      <pre>  ola.s: ola.c
+              gcc -S ola.c -o ola.s
+  ola.o: ola.s
+              as -o ola.o ola.s
+      </pre>
+
+      <p>
+	Neste exemplo existem duas regras: <tt>ola.o</tt> e <tt>ola.s</tt>. 
+	A regra <tt>ola.o</tt> deve corresponder ao
+	arquivo que é produzido com essa regra. Os arquivos necessários
+	para produzir o arquivo <tt>ola.o</tt> devem aparecem em uma lista
+	(separada por espaços) após o caractere ":" (no nosso caso,
+	<tt>ola.s</tt> é necessário para criar <tt>ola.o</tt>). Em
+	seguida, você deve, na linha seguinte, usar uma tabulação
+	(apertar a tecla tab) e digitar o comando que será executado
+	no shell para produzir esse arquivo. No nosso exemplo,
+	chamamos o compilador <tt>gcc</tt> para traduzir um arquivo em
+	linguagem C para linguagem de montagem, e em outra regra,
+	chamamos o montador <tt>GNU as</tt> para transformar um
+	arquivo em linguagem de montagem <tt>.s</tt> em um arquivo
+	objeto <tt>.o</tt>.  Note que você pode especificar como
+	arquivo de entrada de uma regra o nome de outra regra, esta
+	outra regra será chamada antes para produzir o arquivo de
+	entrada necessário.  ATENÇÃO: O <i>script</i> não funcionará se
+	não houver uma tabulação (tab) antes do comando! Não use
+	espaços! É recomendado o uso do Emacs ou VI para a criação do
+	Makefile.
+      </p>
+
+      <p>
+	Você pode criar várias regras em um mesmo arquivo
+	Makefile. Para executar o script, na linha de comando, digite <tt>make nome-da-regra</tt>. Por exemplo:
+	</p><pre> usuario@maquina$ make nome-da-regra</pre> 
+	O programa <tt>make</tt> irá executar os comandos associados à
+	regra <tt>nome-da-regra</tt>, descrita no Makefile. Note que o programa
+	<tt>make</tt> sempre lê o arquivo de nome <tt>Makefile</tt> na
+	pasta em que você está e o usa como <i>script</i>. Se você não
+	utilizar esse nome de arquivo (<tt>Makefile</tt> com "M"
+	maiúsculo), o <i>script</i> irá falhar. Se você invocar o
+	comando <tt>make</tt> sem parâmetros ele executará a primeira
+	regra do arquivo <tt>Makefile</tt>. 
+      <p></p>
+
+      <h5>Tarefa 2</h5>
+
+      <p>
+	Agora você criará o arquivo <tt>Makefile</tt> para gerar um programa
+	a partir do seu código fonte. O programa será construído a partir de 3 arquivos
+	fontes com código escrito na linguagem C: São eles:
+	</p><ul>
+	  <li><tt>main.c</tt></li>
+	  <li><tt>math.c</tt></li>
+	  <li><tt>log.c</tt></li>
+	</ul>
+	A primeira regra do arquivo deve se chamar <tt>prog.x</tt> e o
+	arquivo produzido por esta regra deve ser o executável
+	"<tt>prog.x</tt>". Seu Makefile deve ter regras individuais
+	para construir o programa final e cada um dos arquivos
+	intermediários necessários para a compilação, ou seja, os
+	arquivos em linguagem de montagem
+	(<tt>main.s</tt>, <tt>math.s</tt> e <tt>log.s</tt>) e os
+	arquivos objetos (<tt>main.o</tt>, <tt>math.o</tt>
+	e <tt>log.o</tt>), como exercitado na tarefa 1. Além disso,
+	seu Makefile deve ter uma regra chamada <tt>clean</tt>, que
+	remove os arquivos em linguagem de montagem, os arquivos
+	objetos e o arquivo executável. Você pode usar o
+	comando <tt>rm -f main.s math.s log.s main.o math.o log.o
+	prog.x</tt> para removê-los.
+      <p></p>
+      <p>
+	Para testar seu Makefile, execute as seguintes linhas de
+	comando no terminal do linux e verifique se a
+	ferramenta <tt>make</tt> produziu APENAS os arquivos
+	necessários pela regra especificada.
+</p><pre>    make main.s
+    make clean
+    make math.s
+    make clean
+    make log.s
+    make clean
+    make main.o
+    make clean
+    make math.o
+    make clean
+    make log.o
+    make clean
+    make prog.x</pre>
+      <p></p>
+      <p>
+	Submeta o Makefile gerado para o Susy.
+      </p>
+      <p>
+	Referência para Makefile:
+	</p><ul>
+	  <li>Guia em português: <a href="http://pt.wikibooks.org/wiki/Programar_em_C/Makefiles">http://pt.wikibooks.org/wiki/Programar_em_C/Makefiles</a> 
+	    </li>
+	  <li>Manual original (em inglês): <a href="http://www.gnu.org/software/make/manual/make.html#Simple-Makefile">http://www.gnu.org/software/make/manual/make.html#Simple-Makefile</a>
+	    </li>
+	</ul>
+      <p></p>
+
+      <h3>Entrega e avaliação</h3>
+
+      <p>
+	Os arquivos referentes à atividade devem ser submetidos para avaliação
+	utilizando o sistema Susy em:
+	<a href="https://susy.ic.unicamp.br:9999/mc404ab/Lab1" target="_blank">
+	  https://susy.ic.unicamp.br:9999/mc404ab/Lab1</a>
+      </p>
+      
+    </div>
+    
+  
+
+
+
+</body></html>

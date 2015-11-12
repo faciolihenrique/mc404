@@ -1,0 +1,291 @@
+<!--?xml version="1.0" encoding="UTF-8"?-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><head>
+    <link href="lab02_files/bootstrap.css" rel="stylesheet">
+    <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8" charset="utf-8">
+  </head>
+
+  <body style="background: transparent; margin: 0pt">
+    
+    <div class="row-fluid">
+      
+
+      <h2>Atividade de Laboratório 2</h2>
+
+      <h3>Objetivos</h3>
+
+      <p>
+	O objetivo desta atividade é a familiarização com a infraestrutura de
+	simulação do computador IAS, e programação em linguagem de máquina.
+      </p>
+
+      <h3>Descrição</h3>
+
+      <p>
+	Nesta atividade você deverá escrever um pequeno programa em linguagem de 
+	máquina do computador IAS para calcular a velocidade inicial de um projétil que precisa
+	atingir um alvo a uma determinada distância, como ilustrado na Figura 1.
+      </p>
+
+      <center>
+      <img src="lab02_files/trajetoria-projetil.png"> <!-- style="width:562px;height:156px"/> -->
+      <p>
+	Figura 1: Ilustração da trajetória de um projétil no espaço bidimensional.
+      </p>
+      </center>
+
+      <p>
+	Suponha que o projétil seja lançado a 45<sup>o</sup> do
+	eixo <i>x</i>.  Então você pode usar a fórmula:
+
+	</p><center>
+	<img src="lab02_files/eq-1.png"> <!-- style="width:562px;height:156px"/> -->
+	</center>
+	
+	para o cálculo (Consulte o apêndice para a explicação),
+	onde <i>v</i> é a velocidade inicial, <i>g</i> a aceleração da
+	gravidade e <i>x</i> a distância horizontal do alvo em relação
+	à origem do disparo. Assuma <i>g</i> igual a 10
+	m/s<sup>2</sup>. Os cálculos do programa devem usar sempre
+	inteiros.  Para testar o seu programa, descubra qual a
+	velocidade inicial, em m/s, para atingir um alvo a 3500 m.
+      <p></p>
+
+      <p>
+	Note que o IAS não possui instrução para a raiz quadrada. Para isso, você deve
+	calcular uma expressão que aproxima o valor da raiz quadrada para números
+	inteiros. Tal expressão aproxima um chute para o valor da raiz quadrada.
+	Seja <i>k</i> um chute aproximado para <img src="lab02_files/eq-11.png">. Comece supondo que
+
+	</p><center>
+	  <img src="lab02_files/eq-2.png">
+	</center>
+
+	Um passo para aproximar <i>k</i> do valor real de <img src="lab02_files/eq-11.png"> é calcular
+	um novo <i>k'</i> com a fórmula:
+
+	<center>
+	  <img src="lab02_files/eq-3.png">
+	</center>
+	  
+	A cada vez que você calcular a expressão acima, você
+	descobrirá um valor de <i>k</i> mais próximo de
+	<img src="lab02_files/eq-11.png">. Para os valores usados neste
+	exercício, uma boa aproximação consiste em computar essa
+	expressão por 10 vezes.
+      <p></p>
+
+      <h3>Programando o IAS</h3>
+
+      <p>
+	No capítulo 5 do documento
+	<a href="http://www.ic.unicamp.br/%7Eedson/disciplinas/mc404/2015-2s/ab/anexos/programando_o_IAS.pdf">programando o IAS</a>
+	você encontrará detalhes sobre as operações do IAS e sua codificação
+	em linguagem de máquina, e no final desse documento existe um
+	sumário de todas as instruções. 
+      </p>
+
+      <p>
+	O simulador parte do pressuposto de que o programa já está na
+	memória quando a execução é iniciada.  Para carregar as
+	instruções e dados iniciais na memória você deve fornecer um
+	"mapa de memória" ao simulador. O mapa de memória contém uma
+	lista de valores que serão utilizados para iniciar a
+	memória da máquina antes da execução iniciar.  O mapa de
+	memória é um arquivo no formato texto onde cada linha
+	especifica o endereço e o valor que deve ser gravado na
+	palavra de memória associada ao endereço.  Você deve escrever
+	seu programa em um arquivo texto que representa um mapa de
+	memória (.hex), onde cada linha consiste de uma coluna
+	representando o endereço e outra representando o valor
+	armazenado na palavra de memória associada àquele endereço, 
+	conforme o exemplo abaixo:
+      </p>
+
+      <pre>	000 0110015000
+	001 0D40000000
+	...
+	100 00000088D8
+      </pre>
+
+      <p>
+	Esse programa exemplo copia o conteúdo da posição 0x100 de memória para
+	o registrador AC (operação 0x01), faz um deslocamento para a direita
+	(operação 0x15) no dado recém obtido e por fim realiza um salto para o
+	endereço de memória 0x400 (operação 0D). Note que todos os endereços
+	e valores no mapa de memória estão representados no sistema
+	hexadecimal.
+      </p>
+
+      <p>
+	Você pode introduzir espaços em branco entre os caracteres da segunda
+	coluna (dados/instruções), linhas em branco e comentários para
+	facilitar a leitura. O trecho de código abaixo é equivalente ao
+	anterior:
+      </p>
+
+      <pre>	000 01 100 15 000
+	
+	001 0D 400 00 000 #isso eh um comentario
+	...
+	100 00 00 00 88 D8
+      </pre>
+
+      <p>
+	Para testar o seu programa você deve usar o simulador do IAS. Para isso,
+	faça o download do simulador através <a href="http://www.ic.unicamp.br/%7Eedson/disciplinas/mc404/2015-2s/ab/anexos/ias">desse
+	link</a>, torne o arquivo executável (<tt>chmod +x ias</tt>) e utilize o
+	seguinte comando para carregar o seu programa descrito em linguagem de
+	máquina (mapa de memória):
+      </p>
+
+      <pre>	./ias --load=programa.hex
+      </pre>
+
+      <p>
+	Esse comando inicia a execução a partir do endereço de memória 0x000.
+	Para terminar a execução, você pode realizar um salto para o endereço
+	0x400 - veja que esse valor representa o número 1024 no sistema
+	decimal, e sabemos que o IAS tem 1024 palavras de memória, que são os
+	endereços de 0x000 a 0x3FF no mapa de memória. Ou seja, ao efetuar
+	um salto para o endereço 0x400, estamos desviando o fluxo de execução 
+	para uma posição de memória inexistente, portanto o simulador irá 
+	parar a execução e apresentar
+	a mensagem ''<i>Address out of bounds</i>'', que pode ser ignorada.
+      </p>
+
+      <h3>Dicas</h3>
+      <ul>
+	<li>Não se esqueça de que o <b>endereço do início da execução
+	    é 000</b>, e não 001.</li>
+	
+	<li>Ao saltar para o endereço 0x400, lembre-se de preencher de
+	  fato o campo de endereço da instrução com o valor 400, ou este
+	  ficará zerado e o programa entrará em <i>loop</i> infinito.</li>
+	
+	<li>Procure primeiramente entender as instruções do IAS e
+	  escreva seu programa uma instrução por linha, comentando cada
+	  linha e entendendo a lógica. Só depois converta esse código para
+	  linguagem de máquina usando 2 instruções de 20 <i>bits</i> por
+	  linha, no formato do mapa de memória.</li>
+	
+	<li>Para facilitar as coisas, pode ser considerado que a
+	  multiplicação gera apenas resultados de até 40 <i>bits</i>.</li>
+      </ul>
+
+      
+      <h3>Entrega e avaliação</h3>
+
+      <p>
+
+      </p><ul>
+	<li>O exercício a ser submetido é o mapa de memória com o programa para resolver o problema da balística descrito acima.</li>
+	<li>
+	  <b>Você deve submeter APENAS um arquivo no SuSy, chamado
+	    raXXXXXX.hex, em que XXXXXX é seu ra com 6 dígitos.</b>
+	</li>
+	<li>Seu programa deve terminar com um salto para o endereço
+	  0x400, conforme comentado acima.</li>
+	<li>Ao final da execução do seu programa, o valor da velocidade do 
+	  projétil deve estar no registrador AC.</li>
+	<li>O valor da <b>''entrada'' (x)</b> deverá estar na posição de
+	  memória <b>0x105</b>. Não utilize esta posição de memória para
+	  outros fins. O <i>script</i> de correção irá ajustar o mapa de
+	  memória substituindo o valor desta posição (ou acrescentando se
+	  for o caso) com o valor da entrada.</li>
+	<li>Use comentários e os espaços a vontade, pois além de facilitar a
+	  leitura de seu arquivo, caso seja necessário, é uma boa prática de
+	  programação.</li>
+	<li>O prazo para submissão termina às 13:59:00 do dia
+	  26/08/2015. Após este prazo o sistema não aceitará mais
+	  submissões.</li>
+	<li>Serão testadas 5 entradas diferentes para o seu
+	  programa. No <i>script</i> de correção já mostramos
+	  duas. Elas são os valores 0xA e 0xDAC e devem gerar as saídas
+	  0xA e 0xBB respectivamente.</li>
+	<li>A nota do laboratório será proporcional ao número de
+	  testes corretos.</li>
+      </ul>
+
+      <p></p>
+      
+      <p>
+	O <i>script</i> a ser utilizado para verificar a corretude
+	pode ser encontrado
+	em: <a href="http://www.ic.unicamp.br/%7Eedson/disciplinas/mc404/2015-2s/ab/labs/lab02/correcao-lab2.sh">correcao-lab2.sh</a>.
+      </p>
+
+      <p>
+	Endereço da atividade no sistema SuSy:
+	<a href="https://susy.ic.unicamp.br:9999/mc404ab/Lab2" target="_blank">
+		https://susy.ic.unicamp.br:9999/mc404ab/Lab2</a>
+      </p>
+
+      <h3>Apêndice: Desenvolvimento teórico</h3>
+
+      <p>
+	Nota: esse apêndice tem caráter de curiosidade, não sendo
+	necessária sua leitura para compreensão do laboratório.
+      </p>
+
+      <p>
+	Seja <i>v<sub>y0</sub></i> a velocidade vertical inicial do
+	projétil, <i>v<sub>x</sub></i> a velocidade
+	horizontal, <i>g</i> a aceleração da gravidade e <i>t</i> o
+	tempo. As equações de movimento são:
+	
+	</p><center>
+	<img src="lab02_files/eq-4.png"> (1)
+	</center>
+
+	e
+	
+	<center>
+	<img src="lab02_files/eq-5.png"> (2)
+	</center>
+
+	Isolando o tempo na equação 2, temos:
+
+	<center>
+	<img src="lab02_files/eq-6.png"> (3)
+	</center>
+
+	Fazemos então <i>y = 0</i> pois estamos interessados no momento em que o projétil
+	atinge o chão (altura igual a zero) e simplificamos a equação 1:
+
+	<center>
+	<img src="lab02_files/eq-7.png"> (4)
+	</center>
+
+	Substituindo 3 em 4 temos:
+
+	<center>
+	<img src="lab02_files/eq-8.png">
+	</center>
+
+	Agora, recompomos as componentes da velocidade inicial (<i>v<sub>x</sub></i> e <i>v<sub>y0</sub></i>)
+	para ângulo e norma do vetor v, obtendo
+
+	<center>
+	<img src="lab02_files/eq-9.png"> (5)
+	</center>
+	
+	A partir da equação 5, percebemos que o ângulo de
+	45<sup>o</sup> é o que minimiza a velocidade inicial
+	necesssária para atingir o alvo, pois leva o termo
+	multiplicativo da velocidade a 1 (qualquer outro ângulo tem o
+	efeito de prejudicar a velocidade inicial).  Então, usando
+	este ângulo, obtemos a fórmula:
+
+	<center>
+	<img src="lab02_files/eq-10.png"> (5)
+	</center>
+
+      <p></p>
+      
+    </div>
+    
+  
+
+
+</body></html>

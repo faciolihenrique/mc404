@@ -1,0 +1,112 @@
+<!--?xml version="1.0" encoding="UTF-8"?-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><head>
+    <link href="lab03_files/bootstrap.css" rel="stylesheet">
+    <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8" charset="utf-8">
+  </head>
+
+  <body style="background: transparent; margin: 0pt">
+    
+    <div class="row-fluid">
+      
+
+      <h2>Atividade de Laboratório 3</h2>
+
+      <h3>Objetivos</h3>
+
+        O objetivo desta atividade é exercitar o conceito de laço e o método
+        de acesso indireto à memória do computador IAS.
+
+      <h3>Descrição</h3>
+
+      <p>
+	Escreva um programa em linguagem de máquina IAS (usando mapa
+	de memória) para calcular o produto escalar de dois vetores.
+	Produto escalar é uma operação que realiza a soma dos produtos
+	de todos os elementos de 2 vetores, dois-a-dois. Por exemplo,
+	para os vetores A=(1,2) e B=(4,13), temos o seguinte produto
+	escalar: 1*4+2*13 = 30.
+	
+	Você pode supor que os vetores possuem o mesmo tamanho,
+	contudo esse tamanho é arbitrário. Os vetores podem ou não
+	estar representados consecutivamente no mapa de memória. Mais
+	informações são apresentadas na seção abaixo.
+      </p>
+      
+      <h3>Requisitos (ATENÇÃO!)</h3>
+      
+      <ul>
+	<li>O tamanho dos vetores deve ser lido da memória, no
+	endereço 0x3FF;</li>
+
+	<li>
+	  Os endereços dos vetores (endereços do primeiro elemento de cada
+	  vetor) devem ser lidos da memória (endereços 0x3FD e 0x3FE).
+	</li>
+		  
+	<li>
+	  Seu mapa de memória deve ser organizado em 3 partes: na primeira parte
+	  há o código (instruções) e dados; na segunda parte (o "meio" do mapa
+	  de memória) estão os 2 vetores, e nas 3 últimas posições estão
+	  armazenados os endereços iniciais e o tamanho dos vetores, conforme
+	  explicado no item acima.</li>
+
+	  <li>
+	    Reserve as primeiras 64 linhas do mapa de memória para as instruções
+	    e dados. Na correção da atividade, um <i>script</i> vai copiar suas
+	    primeiras 64 linhas e juntar com vetores pré-determinados para
+	    teste.
+	  </li>	
+	  
+	  <li>
+	    Termine a execução com um salto para um endereço maior ou
+	    igual a 0x400.
+	  </li>
+
+	  <li>
+	    <b>Antes de terminar a execução, salve o resultado do produto escalar no registrador
+	    <tt>AC</tt>. A corretude será verificada através da inspeção do valor neste registrador</b>
+	  </li>
+      </ul>
+	
+      <h3>Dicas</h3>
+      
+      <ul>
+	<li>
+	  O arquivo (<a href="http://www.ic.unicamp.br/%7Eedson/disciplinas/mc404/2015-2s/ab/labs/lab03/blank.hex">blank.hex</a>)
+	  contém <b>todas</b> as posições de memória do IAS preenchidas
+	  com 0 - pode ser útil como "molde".
+	</li>
+	<li>
+	  Para facilitar o projeto e a implementação do programa, você
+	  pode considerar que a multiplicação gera apenas resultados
+	  de até 40 <i>bits</i>.
+	</li>
+      </ul>
+
+      <h3>Entrega e avaliação</h3>
+
+      <p>
+	Endereço da atividade no sistema SuSy:
+	<a href="https://susy.ic.unicamp.br:9999/mc404ab/Lab3" target="_blank">
+	https://susy.ic.unicamp.br:9999/mc404ab/Lab3</a>
+      </p>
+      
+      <ul>
+          <li><b>Você deve submeter APENAS um arquivo no SuSy, chamado
+          raXXXXXX.hex, em que XXXXXX é seu ra com 6 dígitos.</b></li>
+      </ul>
+
+      <p>
+	O <i>script</i> a ser utilizado para verificar a corretude e
+	três dos testes podem ser encontrados
+	em: <a href="http://www.ic.unicamp.br/%7Eedson/disciplinas/mc404/2015-2s/ab/labs/lab03/mc404-15-2s-lab03.tar.gz">mc404-15-2s-lab03.tar.gz</a>. Para
+	descompactar utilize </p><pre>tar -xzvf mc404-15-2s-lab03.tar.gz</pre>.
+      <p></p>
+
+    </div>
+    
+  
+
+
+</body></html>

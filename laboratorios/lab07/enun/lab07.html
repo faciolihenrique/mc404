@@ -1,0 +1,267 @@
+<!--?xml version="1.0" encoding="UTF-8"?-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><head>
+    <link href="lab07_files/bootstrap.css" rel="stylesheet">
+    <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8" charset="utf-8">
+  </head>
+
+  <body style="background: transparent; margin: 0pt">
+    
+    <div class="row-fluid">
+      
+      <h2>Atividade de Laboratório 7</h2>
+
+
+      <h3>Objetivos</h3>
+      <p>
+        O objetivo desse laboratório é exercitar o conceito de função
+        em linguagem de montagem e o processo de ligação de código em
+        linguagem de alto nível com código em linguagem de montagem.
+      </p>
+      
+      <h3>Descrição</h3>
+
+      <p>
+        Neste laboratório você implementará rotinas para o controle do
+        robô Uóli. O código com a lógica de controle do Uóli deve ser codificada em C, 
+	no arquivo <tt>main.c</tt> enquanto que as rotinas para suporte ao controle do robô
+	devem ser codificadas em linguagem de montagem.
+      </p>
+
+      <h4>Rotinas para suporte à programação do controle do Uóli</h4>
+
+      <p>
+	O sistema a ser desenvolvido possui um conjunto de rotinas
+	para dar suporte à programação da lógica de controle do
+	Uóli. Este conjunto de rotinas faz parte
+	da <a href="http://en.wikipedia.org/wiki/Application_programming_interface">API</a>
+	de controle do Uóli e é definida pelo
+	arquivo: <a href="http://www.ic.unicamp.br/%7Eedson/disciplinas/mc404/2015-2s/ab/labs/lab07/api_robot.h"><tt>api_robot.h</tt></a>.
+      </p>
+
+      <p>
+	Para implementar este conjunto de rotinas você deve criar um
+	arquivo chamado <tt>api_robot.s</tt> e implementar as rotinas
+	descritas no arquivo <tt>api_robot.h</tt>. Estas rotinas devem
+	fazer uso de chamadas de sistemas, ou <i>syscalls</i>, para
+	controlar o robô. As <i>syscalls</i> estão definidas abaixo.
+      </p>
+
+      <p> 
+	Como visto em sala de aula, cada rotina deve ser
+	identificada por um rótulo igual ao nome da rotina em
+	"C". Além disso, para permitir que uma rotina implementada em
+	um arquivo seja chamada de outro arquivo você deve sinalizar
+	para o ligador (<i>linker</i>) que o rótulo que representa a
+	rotina é um símbolo global. Para fazer isso, basta informar ao
+	montador que o rótulo da rotina é um símbolo global através da
+	diretiva <tt>.global</tt>.  O
+	arquivo <tt><a href="http://www.ic.unicamp.br/%7Eedson/disciplinas/mc404/2015-2s/ab/labs/lab07/example.s">example.s</a></tt>
+	apresenta um exemplo com duas rotinas onde a
+	rotina <tt>dummy_routine1</tt> é definida como global através
+	do uso diretiva <tt>.global</tt>. Observe que a outra rotina
+	(<tt>dummy_routine2</tt>) não é declarada como global.
+      </p>
+      <p>
+	A título de curiosidade, após a montagem do
+	arquivo <tt>example.s</tt> você pode usar a
+	ferramenta <tt>objdump</tt> (<tt>arm-eabi-objdump</tt>) para
+	inspecionar o conteúdo da tabela de símbolos do arquivo
+	montado. Para isso, basta usar a opção <tt>-t</tt>. Exemplo:
+      </p>
+      <pre>arm-eabi-objdump -t example.o
+
+example.o:     file format elf32-littlearm
+
+SYMBOL TABLE:
+00000000 l    d  .text	00000000 .text
+00000000 l    d  .data	00000000 .data
+00000000 l    d  .bss	00000000 .bss
+0000001c l       .text	00000000 dummy_routine2
+00000000 l    d  .ARM.attributes	00000000 .ARM.attributes
+00000000 g       .text	00000000 dummy_routine1
+      </pre>
+
+      <p>
+	Observe que o símbolo <tt>dummy_routine1</tt> está anotado
+	como "g", em vez de "l", indicando que o símbolo é global.
+      </p>
+
+      <h4>Código com a lógica de controle do Uóli</h4>
+
+      <p>
+	A lógica de controle do robô, por sua vez, deve ser codificada
+	no arquivo <tt>main.c</tt> em linguagem "C".  A rotina
+	principal (a primeira a ser chamada) é a
+	rotina <tt>_start</tt>. Esta rotina deve invocar as rotinas da
+	API de suporte à programação do controle do Uóli,
+	implementadas no passo acima, para controlar o robô.
+      </p>
+      
+      <p>
+        Lembre-se que os protótipos das rotinas de suporte à
+        programação do controle do Uóli estão definidos no
+        arquivo <tt>api_robot.h</tt>. Dessa forma, basta utilizar a
+        diretiva <tt>#include</tt> para adicionar estes protótipos ao
+        seu arquivo <tt>main.c</tt>.
+      </p>
+
+      <p>
+	O arquivo <a href="http://www.ic.unicamp.br/%7Eedson/disciplinas/mc404/2015-2s/ab/labs/lab07/main.c"><tt>main.c</tt></a>
+	contém um exemplo de código para controlar o robô.  Você pode
+	utilizá-lo como referência, entretanto, na sua solução, a
+	lógica implementada na função <tt>_start</tt> deve fazer com
+	que o robô ande aleatoriamente no espaço sem colidir com as
+	paredes.
+      </p>
+
+      <h3>Compilação</h3>
+
+      <p><b>Configuração de variáveis de ambiente: </b></p>
+      <p><tt> source /home/specg12-1/mc404/simulador/set_path_player.sh </tt></p>
+      
+      <p><b> Geração do arquivo <tt>.s</tt> referente ao <tt>main.c</tt>: </b></p>
+      <p><tt> arm-eabi-gcc main.c -S -o main.s </tt></p>
+
+      <p><b> Geração dos arquivos objeto: </b></p>
+      <p><tt> arm-eabi-as main.s -o main.o </tt></p>
+      <p><tt> arm-eabi-as api_robot.s -o api_robot.o </tt></p>
+
+      <p><b> Ligação: </b></p>
+      <p><tt> arm-eabi-ld main.o api_robot.o -o robot_ctrl -Ttext=0x77802000 </tt></p>
+
+      <p><b> Geração da imagem do cartão SD: </b></p>
+      <p><tt>
+          mksd.sh --so /home/specg12-1/mc404/simulador/simulador_player/bin/knrl --user robot_ctrl
+      </tt></p>
+
+      <p><b>Importante</b>: O sistema operacional usado na
+	infraestrutura atual supõe que a função <tt>_start</tt> inicia
+	no endereço <tt>0x77802000</tt> e salta para este endereço
+	após iniciar o sistema. Para posicionar a
+	função <tt>_start</tt> neste endereço, nós utilizamos
+	a <i>flag</i> <tt>-Ttext=0x77802000</tt> para sinalizar ao
+	ligador que todas as seções <tt>.text</tt> sejam posicionadas
+	a partir do endereço <tt>0x77802000</tt>. Para que a
+	função <tt>_start</tt> seja posicionada neste endereço, ela
+	deve ser a primeira função no arquivo <tt>main.c</tt> e o
+	arquivo <tt>main.o</tt> deve ser o primeiro na lista de
+	arquivos passados para o ligador. Você pode utilizar o
+	desmontador (<tt>objdump</tt>) para inspecionar o
+	programa <tt>robot_ctrl</tt> e verificar se a
+	função <tt>_start</tt> foi de fato associada ao
+	endereço <tt>0x77802000</tt>.
+      </p>
+
+      <h3>Simulação</h3>
+
+      <p><b> Abra outro terminal para iniciar o <i>Player</i>: </b></p>
+      <p><tt>
+          player /home/specg12-1/mc404/simulador/simulador_player/worlds_mc404/simple.cfg           
+      </tt></p>
+      
+      
+      <p><b> No terminal que você realizou a compilação, execute o simulador: </b></p>
+      <p><tt>
+          armsim_player --rom=/home/specg12-1/mc404/simulador/simulador_player/bin/dumboot.bin
+          --sd=disk.img
+      </tt></p>
+
+
+      <h3>Informações importantes/Dicas</h3>
+      
+      <ul>
+	<li>
+          Busque criar um <i>Makefile</i> para automatizar o processo de compilação
+          e simulação.
+        </li>
+        
+	<li>
+          Para maior integração com o <i>Player</i>, no momento do seu <i>login</i>
+          nas máquinas das salas 302 e 303, escolha o XFCE como
+          <i>Session Type</i>.
+        </li>
+
+
+	<li>
+          Lembre-se que a rotina <tt>read_sonars</tt>, por realizar a
+          leitura de todos os sonares, demanda um tempo bem maior para
+          executar.
+        </li>
+
+        <li>
+          Lista das <i>syscalls</i> disponíveis para o controle de Uóli:
+          <br><br>
+          <table border="1">
+            <tbody><tr>
+              <th> Syscall    </th>
+              <th> Número     </th>
+              <th> Parâmetros </th>
+              <th> Retorno    </th>
+            </tr>
+            
+            <tr>
+              <td><tt> read_sonar  </tt></td>
+              <td> 125 </td>
+              <td> <tt>r0:</tt> Identificador do sonar.  </td>
+              <td> <tt>r0:</tt> Distância lida pelo sonar.  </td>
+            </tr>
+            
+            <tr>
+              <td><tt> write_motors  </tt></td>
+              <td> 124 </td>
+              <td>
+                <tt>r0:</tt> Velocidade para o motor 0.
+                <br>
+                <tt>r1:</tt> Velocidade para o motor 1.
+              </td>              
+              <td align="center"> -  </td>
+            </tr>
+
+            <tr>
+              <td><tt> write_motor0  </tt></td>
+              <td> 126 </td>
+              <td>
+                <tt>r0:</tt> Velocidade para o motor.
+              </td>              
+              <td align="center"> -  </td>
+            </tr>
+
+            <tr>
+              <td><tt> write_motor1  </tt></td>
+              <td> 127 </td>
+              <td>
+                <tt>r0:</tt> Velocidade para o motor.
+              </td>              
+              <td align="center"> -  </td>
+            </tr>
+          </tbody></table>
+          
+        </li>  
+      </ul>
+
+      <h3>Entrega e avaliação</h3>
+
+      <ul>        
+        <li>
+	  Endereço da atividade no sistema SuSy:
+	  <a href="https://susy.ic.unicamp.br:9999/mc404ab/Lab7" target="_blank">
+	    https://susy.ic.unicamp.br:9999/mc404ab/Lab7</a>
+        </li>
+
+        <li>
+          <b>Você deve submeter APENAS um arquivo comprimido
+            denominado raXXXXXX.tar.gz</b> (em que XXXXXX é seu RA com
+            6 dígitos) que contenha os
+            arquivos <tt>main.c</tt>, <tt>api_robot.h</tt>
+            e <tt>api_robot.s</tt> com os códigos em linguagem C e em
+            linguagem de montagem.  Para comprimir os arquivos, use o
+            comando "<tt>tar -czf raXXXXXX.tar.gz main.c api_robot.h
+            api_robot.s</tt>".
+        </li>
+      </ul>
+
+    </div>
+  
+
+</body></html>

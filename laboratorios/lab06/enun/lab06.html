@@ -1,0 +1,222 @@
+<!--?xml version="1.0" encoding="UTF-8"?-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><head>
+    <link href="lab06_files/bootstrap.css" rel="stylesheet">
+      <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8" charset="utf-8">
+      </head>
+
+      <body style="background: transparent; margin: 0pt">
+        
+        <div class="row-fluid">
+          
+
+          <h2>Atividade de Laboratório 6</h2>
+
+          <h3>Objetivos</h3>
+
+          <p>
+            O objetivo desta atividade de laboratório é exercitar os
+            conceitos de programação em linguagem de montagem do ARM,
+            desenvolvendo um código de controle para o Uóli, um robô
+            simulado.
+          </p>
+
+          <h3>Descrição</h3>
+
+	  <p>
+	    Uóli é um robô famoso que foi criado para nos ajudar a
+	    limpar o planeta. Infelizmente, em uma de suas aventuras,
+	    Uóli sofreu avarias sérias ao tentar impedir que um
+	    holo-detector se fechasse e parou de funcionar.
+	  </p>
+
+	  <p>
+	    Após o incidente, sua amiga Íva, reconstruiu Uóli a partir
+	    de peças usadas de outros robôs, entretanto, seu programa
+	    foi apagado durante a reconstrução e, atualmente, apenas
+	    o <i>hardware</i> de Uóli foi recuperado. Com o intúito de
+	    ajudar Íva, construiremos parte do <i>software</i> que
+	    controlará Uóli.
+	  </p>
+
+	  <p>
+            Neste laboratório vamos utilizar uma versão modificada do
+            simulador ARM das aulas anteriores que trabalha em
+            conjunto com o
+            <a href="http://playerstage.sourceforge.net/index.php?src=player">
+              <i>Player</i></a>. <i>Player</i> é um simulador que modela 
+            a interação de um robô com o ambiente ao seu redor. O simulador
+	    permite que um código de usuário 
+            possa ser desenvolvido para controlar os periféricos do robô. 
+            Para habilitar a comunicação com o seu programa, o <i>Player</i>
+            fornece uma interface via <i>sockets</i>.
+	  </p>
+
+
+	  <br>
+	  <center>
+	    <img src="lab06_files/player_local.jpg" alt="Janela do Player." height="550" width="550">
+	  </center>
+	  <br>			
+	    
+	  <p>
+	    Para este laboratório, você pode supor que toda a parte de
+	    configuração do sistema, incluindo os periféricos, já foi
+	    realizada pelo código básico do sistema e cabe a você
+	    apenas desenvolver um código em linguagem de montagem ARM
+	    para controlar o Uóli.
+	  </p>
+
+          <h3>Informações e Detalhes</h3>
+
+	  <p>
+            No nosso exemplo, o robô Uóli apresenta 3 periféricos:
+            Dois motores e um conjunto de sonares. Você vai precisar
+            definir uma velocidade para cada motor. Para verificar a
+            proximidade de objetos/obstáculos, você deve ler alguns
+            dos sonares, que são 16 ao todo.  Um breve detalhamento
+            sobre este robô pode ser encontrado no seguinte
+            <a href="http://www.ic.unicamp.br/%7Eedson/disciplinas/mc404/2015-2s/ab/labs/lab06/lab06_files/Pioneer3DX-P3DX-RevA.pdf">arquivo</a>.
+	  </p>
+
+	  <p>
+            Na figura abaixo você pode ver como os sonares estão
+            dispostos no robô.  Por exemplo, se você quiser obter a
+            distância de um objeto à frente do robô, você vai
+            consultar os sonares 3 e 4. Para realizar a leitura de um
+            sonar, existe a chamada de sistema
+            (<b>syscall</b>) <b>read_sonar</b>, identificada pelo
+            número
+            <b>125</b>. Essa <b>syscall</b> recebe em <tt>r0</tt> o
+            valor que identifica de qual sonar você deseja ler, e após
+            a sua chamada o resultado será retornado também
+            em <tt>r0</tt>.  Somente os 4 <i>bits</i> menos
+            significativos de <tt>r0</tt> serão consultados para
+            indexar o sonar, e o resultado vai ocupar os
+            12 <i>bits</i> menos significativos em <tt>r0</tt>.
+	  </p>
+
+	  <br>
+
+	  <center><img src="lab06_files/pioneer3at_sonars.png" alt="Diagrama dos Sonares." height="550" width="550">
+	  </center>
+
+	  <br>			
+
+	  <p>
+            O robô possui dois motores, um para cada roda lateral, que
+            aqui vamos chamá-los de <i>motor0</i> e <i>motor1</i>.
+            O <i>motor0</i> encontra-se localizado entre o sonar 7 e o
+            sonar 8, enquanto o <i>motor1</i> está entre o sonar 0 e o
+            sonar 15.  Uma <b>syscall</b> de número <b>124</b> foi
+            criada para controlar os motores,
+            chamada <b>write_motors</b>.  Para especificar as
+            velocidades, você deve carregar em <tt>r0</tt> a
+            velocidade do <i>motor0</i> e em <tt>r1</tt> a
+            do <i>motor1</i>.  Para configurar as velocidades, apenas
+            os 6 <i>bits</i> menos significativos são considerados.
+	  </p>
+
+	  <p>
+            Neste laboratório você deverá implementar um código de
+            usuário que vai ler os sonares frontais (3 e 4), quando
+            algum deles estiver retornando um valor baixo, você deverá
+            evitar a colisão do robô, virando ele para alguma direção.
+	  </p>
+
+          <h4>Exemplo de código</h4>		
+
+	  <p>
+	    O código de exemplo
+            (<a href="http://www.ic.unicamp.br/%7Eedson/disciplinas/mc404/2015-2s/ab/labs/lab06/lab06_files/motors.s">motors.s</a>) implementa
+            uma lógica simples de controle.  Ele lê as distâncias
+            retornadas pelos sonares 3 e 4 (frontais), se elas forem
+            menores que um certo limiar, ele pára o robô, senão coloca
+            ele pra andar para frente.
+	  </p>
+
+          <h3>Informações importantes/Dicas</h3>		
+	  
+	  <ul>
+
+	    <li> Se você definiu uma velocidade para o robô, durante a
+	      leitura dos sonares e processamento da informação, o
+	      robô vai continuar em movimento.
+            </li>
+	    
+	    <!--
+	    <li> 
+	      Busque exercitar o conceito de função.
+            </li>
+	    -->
+	    <li> 
+	      Utilize as máquinas das salas 302 e 303, pois essas
+              já possuem o Player e o simulador configurados.
+            </li>
+	    
+	  </ul>
+
+          <h3>Outras Dicas</h3>		
+	  
+	  <ul>
+	    <li> 
+	      Assista ao filme "WALL-E". É muito legal!
+	    </li>
+	  </ul>
+
+          <h3>Simulação</h3>
+
+
+            <p><b> Configuração de variáveis de ambiente: </b></p>
+            <p> source /home/specg12-1/mc404/simulador/set_path_player.sh </p>
+
+            <p><b> Montagem: </b></p>
+            <p> arm-eabi-as motors.s -o motors.o </p>
+
+            <p><b> Ligação: </b></p>
+            <p> arm-eabi-ld motors.o -o motors  -Ttext=0x77802000 </p>
+
+            <p><b>  Geração da imagem do cartão SD: </b></p>
+            <p> 
+              mksd.sh --so /home/specg12-1/mc404/simulador/simulador_player/bin/knrl 
+              --user motors 
+            </p>
+            
+            <p><b> 
+                Antes de iniciar o simulador, você precisa abrir uma sessão do Player
+                <i>EM OUTRO TERMINAL</i>: 
+            </b></p>
+            <p> 
+              player /home/specg12-1/mc404/simulador/simulador_player/worlds_mc404/simple.cfg 
+            </p>
+
+
+            <p><b> 
+                Simular:
+            </b></p>
+            <p> 
+              armsim_player 
+              --rom=/home/specg12-1/mc404/simulador/simulador_player/bin/dumboot.bin 
+              --sd=disk.img
+            </p>
+
+            <h3>Requisitos de entrega</h3>
+
+	    <p>
+	      Endereço da atividade no sistema SuSy:
+	      <a href="https://susy.ic.unicamp.br:9999/mc404ab/Lab6" target="_blank">
+		https://susy.ic.unicamp.br:9999/mc404ab/Lab6</a>.
+	    </p>
+	    
+	    <ul>
+	      <li>Apenas deve ser entregue um arquivo denominado
+		raXXXXXX.s, com seu código em linguagem de montagem
+		(substitua XXXXXX por seu RA de 6 dígitos).</li>
+	      
+	      
+	    </ul>
+	    
+            </div>
+          
+        
+</body></html>

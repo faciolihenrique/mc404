@@ -1,0 +1,92 @@
+<!--?xml version="1.0" encoding="UTF-8"?-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><head>
+    <link href="lab05_files/bootstrap.css" rel="stylesheet">
+    <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8" charset="utf-8">
+  </head>
+
+  <body style="background: transparent; margin: 0pt">
+    
+    <div class="row-fluid">
+      
+
+      <h2>Atividade de Laboratório 5</h2>
+
+      <h3>Objetivos</h3>
+
+      O objetivo desta atividade é exercitar o conceito de laço
+      utilizando o conjunto de instruções da arquitetura ARM.
+
+      <h3>Descrição</h3>
+
+      <p>
+	Escreva um programa em linguagem de montagem ARM que calcule o
+        n-ésimo termo da sequência de <i>fibonacci</i>. Sendo a sequência (1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, ...),
+	o 1<sup>o</sup> termo é 1, o 2<sup>o</sup> é 1, o 3<sup>o</sup> é 2 e assim por diante.
+        O valor N deverá ser lido da entrada padrão no formato binário. 
+        Somente serão válidas <i>strings</i> binárias com <b><i>exatamente</i></b>
+        16 dígitos. O valor de resposta deverá ser mostrado na saída padrão, também no formato binário.
+      </p>
+
+      <p>
+	<b>Exemplos</b>:
+	</p><ul>
+          <li>
+            Quando você solicitar o primeiro valor da sequência <i>fibonacci</i>, você deverá 
+            digitar o valor binário <i>0000000000000001</i> e receber 
+            com resposta <i>0000000000000001</i>.
+	  </li>
+      
+          <li>
+            Quando você solicitar o décimo valor da sequência <i>fibonacci</i>, você deverá 
+            digitar o valor binário <i>0000000000001010</i> e receber 
+            com resposta <i>0000000000110111</i>.
+          </li>
+	</ul> 
+      <p></p>
+
+      <p>
+	Para receber ou imprimir dados no simulador, deverão ser usadas
+	as chamadas de sistema (<i><b>syscalls</b></i>) <i>read</i>
+	e <i>write</i>.
+      </p>
+      
+      <h3>Dicas</h3>
+      
+      <ul>
+	<li>
+	  O arquivo (<a href="http://www.ic.unicamp.br/%7Eedson/disciplinas/mc404/2015-2s/ab/labs/lab05/dobra.s">dobra.s</a>) contém um programa
+	  em linguagem de montagem que lê um valor binário de 16
+	  dígitos e imprime o dobro deste valor, no mesmo formato do exercício.
+	</li>
+
+	<li>
+	  Para facilitar as coisas, pode ser considerado que nenhuma operação gera <i>overflow</i>.
+	</li>
+
+	<li>
+	  Não é necessário tratar valores binários representados com menos, 
+          ou mais, de 16 dígitos.
+	</li>
+      </ul>
+
+      <h3>Entrega e avaliação</h3>
+
+      <p>
+	Endereço da atividade no sistema SuSy:
+	<a href="https://susy.ic.unicamp.br:9999/mc404ab/Lab5" target="_blank">
+	https://susy.ic.unicamp.br:9999/mc404ab/Lab5</a>
+      </p>
+      
+      <ul>
+          <li><b>Você deve submeter APENAS um arquivo no SuSy, chamado
+          raXXXXXX.s, em que XXXXXX é seu ra com 6 dígitos.</b></li>
+      </ul>
+
+    </div>
+    
+  
+
+
+
+</body></html>

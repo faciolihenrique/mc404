@@ -1,0 +1,386 @@
+<!--?xml version="1.0" encoding="UTF-8"?-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><head>
+    <link href="lab04_files/bootstrap.css" rel="stylesheet">
+    <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8" charset="utf-8">
+  </head>
+
+  <body style="background: transparent; margin: 0pt">
+    
+    <div class="row-fluid">
+      
+      <h2>Atividade de Laboratório 4</h2>
+
+
+      <h3>Objetivos</h3>
+
+      <p>
+        O objetivo desse laboratório é familiarizar a turma com a
+        infraestrutura para montagem e execução de código ARM que será
+        utilizada no restante do curso. Nessa atividade é esperado que
+        o aluno compreenda como montar, ligar e executar no simulador 
+        um programa escrito em linguagem de montagem do ARM, além de
+        depurar o código em linguagem de montagem.
+      </p>
+      
+      <h3>Descrição</h3>
+
+      <p>
+	Neste laboratório, você deve fazer um programa em linguagem
+	de montagem do ARM que imprima seu nome seguido do seu RA
+	na tela, na forma "Primeiro_nome - raXXXXXX". O código do
+	programa em linguagem de montagem está disponível em 
+	<a href="http://www.ic.unicamp.br/%7Eedson/disciplinas/mc404/2015-2s/ab/labs/lab04/modelo.s"><tt>modelo.s</tt></a>.
+      </p>
+      
+      <p>
+	Note que o arquivo <tt>modelo.s</tt> está bastante comentado.
+	Nessa atividade, <b>você deve alterar a string "MC404\n" para
+	"Seu_nome - raXXXXXX\n" e o tamanho da string</b>, que é
+	copiado para o registrador <tt>r2</tt>.
+      </p>
+
+      <p>
+	Executar um programa escrito em linguagem de montagem do ARM
+	exige o uso de um simulador ARM, pois os computadores do
+	laboratório (e a maioria dos computadores de uso pessoal,
+	exceto dispositivos móveis) possuem processadores com conjunto
+	de instruções da família de arquiteturas x86, sendo assim
+	incompatíveis com código ARM.
+      </p>
+
+      <p>
+	Desse modo, a não ser que se utilize um <i>hardware</i> ARM,
+	é preciso executar uma sequência de passos para 
+	executar seu programa num computador da família x86.
+      </p>
+
+      <p>
+	Tal sequência, juntamente de uma breve descrição do funcionamento
+	do simulador, está disposta na seção seguinte. Recomenda-se
+	atenção aos passos aqui descritos, pois as etapas são necessárias 
+	para todos os futuros laboratórios.
+      </p>	
+		 
+      <h3>Simulador ARM</h3>
+
+      <p>
+	O simulador da arquitetura ARM usado nessa disciplina foi
+	criado no IC, e usa como base a linguagem descritiva de
+	arquiteturas ArchC (<a href="http://archc.sourceforge.net/">
+	  http://archc.sourceforge.net</a>), também desenvolvida no IC.
+	A entidade simulada é na verdade uma placa denominada i.MX53,
+	da empresa freescale (<a href="http://www.freescale.com/webapp/sps/site/taxonomy.jsp?code=IMX53_FAMILY">
+http://www.freescale.com/webapp/sps/site/taxonomy.jsp?code=IMX53_FAMILY
+	</a>), que utiliza o processador ARM Cortex-A8, que por sua
+	vez implementa a arquitetura ARM v7.  O simulador implementa
+	não só o processador, mas também a unidade de gerenciamento de
+	memória, alguns coprocessadores, dispositivos gerenciadores de
+	UART (interface serial) e cartões SD, além de outros módulos
+	da placa i.MX53.
+      </p>
+
+      <p>
+	O funcionamento do simulador pode ser resumido da seguinte
+	forma: ao iniciar a simulação, o endereço do PC (<i>Program
+	Counter</i>) é 0 e um código residente em uma ROM
+	(<i>Read-Only Memory</i>) deve ser carregado na memória RAM -
+	tal código, que na placa é um <i>firmware</i> responsável por
+	inicializar dispositivos e permitir que um sistema operacional
+	seja carregado, no simulador é chamado
+	<tt>Dumboot</tt> e é similar ao código da placa, de modo que
+	inicializa controladores de dispositivos e permite a carga
+	de um sistema operacional.
+      </p>
+
+      <p>
+	O sistema operacional usado na placa i.MX53 é o Linux - no
+	simulador, um sistema operacional mais simplificado,
+	chamado <tt>DummyOS</tt>, é utilizado. Tal sistema implementa
+	as <i>syscalls</i> mais comuns do Linux permitindo que um
+	programa, ao executar no simulador, escreva e leia dados de
+	dispositivos.
+      </p>
+	
+      <p>
+	Para montar um programa escrito em linguagem de montagem do
+	ARM, originalmente procedemos da mesma forma que já
+	conhecemos: usa-se um montador e em seguida um ligador
+	(<i>linker</i>) para gerar código executável. Contudo, como
+	estamos usando computadores da família x86, vamos utilizar um
+	ambiente de compilação cruzada (<i>cross compiling</i>), de
+	modo que usaremos um montador e um <i>linker</i> que funcionam
+	nas famílias x86, mas que geram código para a arquitetura ARM
+	v7.
+      </p>
+
+      <p>
+	Uma vez tendo o código executável em mãos, devemos criar uma
+	imagem de um cartão SD a ser fornecido ao simulador, para que
+	ele possa executar o código gerado pelo <i>linker</i> na etapa
+	anterior. Tal imagem de cartão SD é criada de modo a conter
+	não apenas o programa que desejamos executar, mas também o
+	código do sistema operacional <tt>DummyOS</tt>.  Por fim,
+	podemos invocar o simulador fornecendo a imagem de cartão SD e
+	um arquivo que representa o código de
+	inicialização <tt>Dumboot</tt>. A seguinte sequência de itens
+	sumariza o processo:
+      </p>
+      
+      <ol>
+	<li>Escrever um código em linguagem de montagem do ARM;</li>
+	<li>Montar o código escrito na etapa anterior, gerando um
+	  arquivo objeto (<tt>.o</tt>);</li>
+	<li>Executar o <i>linker</i> para converter o arquivo objeto
+	  em executável final;</li>
+	<li>Gerar uma imagem de cartão SD contendo o executável gerado
+	  na etapa anterior juntamente do
+	  sistema <tt>DummyOS</tt>;</li>
+	<li>Executar o simulador fornecendo a imagem de cartão SD e um
+	  arquivo que contém o código <tt>Dumboot</tt>.</li>
+      </ol>
+      
+      <p>
+	A seguir, as etapas serão detalhadas e exemplificadas.
+      </p> 
+
+      <h3>Infraestrutura</h3>
+      <p>
+	Todo o ferramental necessário para se trabalhar com o
+	simulador, como montador, <i>linker</i>, gerador de imagem de
+	SD e o simulador em si estão disponíveis nos laboratórios em
+	<tt>/home/specg12-1/mc404/simulador</tt>. A primeira etapa
+	antes de sequer usar o montador é executar o seguinte comando:
+      </p>
+		
+      <p>
+	<b><tt>source /home/specg12-1/mc404/simulador/set_path.sh</tt></b>
+      </p>
+	
+      <p>
+	Esse comando inicializa variáveis de ambiente necessárias para
+	o bom funcionamento do conjunto de ferramentas. A partir desse
+	ponto, todos os comandos podem ser executados de qualquer
+	diretório.
+      </p>
+
+      <h4>Montagem e ligação</h4>
+      <p>
+	Para montar seu código em linguagem de montagem, use o comando
+      </p>
+      
+      <p><b><tt>arm-eabi-as arquivo_de_entrada.s -o arquivo_de_saida.o</tt></b></p>
+      
+      <p>
+	Note o prefixo <tt>arm-eabi-</tt> na ferramenta <tt>as</tt>
+	(GNU <i>assembler</i>) - esse prefixo indica que estamos usando um executável
+	diferente do montador (<i>assembler</i>) nativo, capaz de realizar compilação
+	cruzada. Após essa etapa, tendo o arquivo objeto em mãos, podemos
+	executar o ligador (<i>linker</i>) através do seguinte comando:
+      </p>
+      
+      <p><b><tt>arm-eabi-ld arquivo_de_entrada.o -o arquivo_de_saida_do_ligador -Ttext=0x77802000 -Tdata=0x77802050</tt>
+      </b></p>
+      
+      <p>
+	Observe que há dois parâmetros não usuais na chamada do ligador:
+	<tt>-Ttext</tt> e <tt>-Tdata</tt>. Tais parâmetros indicam os endereços iniciais 
+	de montagem do código e dos dados descritos nas seções
+	<tt>.text</tt> e <tt>.data</tt>, respectivamente.  Você deve
+	certificar-se de que o endereço inicial da seção
+	de <tt>.data</tt> é maior do que a soma do endereço inicial
+	com o tamanho da seção <tt>.text</tt>. Você também deve tomar
+	cuidado para não colocar um endereço muito distante, pois isso
+	tornaria o tamanho da imagem do cartão SD demasiadamente
+	grande, fazendo com que a simulação fique mais lenta.  A
+	diferença entre os dois valores (no nosso caso, 0x77802050 -
+	0x77802000 = 50) pode ser estendida no caso de programas com
+	muitas instruções. Para a maioria dos casos, no entanto, esses
+	valores são ótimos.
+      </p>
+      
+      <h4>Geração da imagem do cartão SD</h4>
+
+      <p>
+	Uma vez gerado o executável na etapa anterior, vamos criar uma
+	imagem de cartão SD que inclua o executável e o <tt>DummyOS</tt>.
+	Para tanto, devemos usar o seguinte comando:
+      </p>
+
+      <p>
+	<b><tt>mksd.sh --so /home/specg12-1/mc404/simulador/dummyos.elf --user arquivo_de_saida_do_ligador</tt></b>
+      </p>
+	
+      <p>
+	Note que o arquivo <tt>dummyos.elf</tt>, que representa o
+	sistema operacional <tt>DummyOS</tt>, está sendo passado como
+	argumento, junto do arquivo de saída do ligador. Um arquivo
+	denominado <tt>disk.img</tt> será gerado no diretório corrente
+	como resultado da execução do comando acima. <b>Não se esqueça
+	de, a cada vez que modificar seu código-fonte, gerar novamente
+	a imagem do cartão SD</b> - caso contrário, você não estará
+	atualizando de fato o executável que será simulado. (Dica:
+	crie um Makefile para gerenciar esta tarefa automaticamente
+	para você!!!)
+      </p>		
+
+      <h4>Simulação</h4>	
+      
+      <p>
+	Por fim, procedemos com a simulação em si. Para tanto, basta
+	executar o seguinte comando:
+      </p>
+
+      <p>
+	<b><tt>arm-sim --rom=/home/specg12-1/mc404/simulador/dumboot.bin --sd=disk.img</tt></b>
+      </p>
+	
+      <p>
+	Note que os argumentos passados para a ferramenta
+	<tt>arm-sim</tt> (executável do simulador) são o código
+	<tt>Dumboot</tt> e a imagem de SD criada no passo anterior.  A
+	simulação então ocorre - o simulador é bastante
+	"verborrágico", sendo que a parte essencial da saída aparece
+	após a linha "<tt>Booted DummyOS.</tt>". Uma característica
+	importante a ser notada aqui é: o sistema operacional
+	<tt>DummyOS</tt> funciona baseado num laço infinito, que
+	espera por processos a serem executados. No nosso caso, uma
+	vez que o executável é finalizado, o sistema operacional
+	permanece no laço indefinidamente, esperando novos
+	processos. <b>Assim, deve-se terminar a simulação com o
+	comando <tt>ctrl+C</tt></b>.
+      </p>
+
+      <h4>Depuração</h4>	
+
+      <p>
+	Por vezes, encontrar um erro num código-fonte em linguagem de
+	máquina não é trivial. Podemos usar a ferramenta GNU gdb para
+	permitir a execução passo a passo do programa e encontrar o
+	erro mais facilmente. Em geral, as etapas para se depurar um
+	programa com o gdb são:
+      </p>
+
+      <ol>
+	<li>Compilar/montar o código-fonte com o parâmetro de
+	  depuração (<tt>-g</tt>) ativado;</li>
+	<li>Ligar o(s) arquivo(s) objeto também com o parâmetro
+	  de depuração ativado;</li>
+	<li>Executar o comando <tt>gdb seu_programa</tt> para invocar
+	  o gdb e começar a depuração.</li>
+      </ol>
+
+      <p>
+	No nosso caso, estaremos depurando uma aplicação escrita em
+	linguagem de montagem do ARM num computador da família x86,
+	logo algumas etapas adicionais serão necessárias. Em primeiro
+	lugar, é preciso compilar e ligar seu código com a <i>flag</i>
+	de depuração <tt>-g</tt> ativada. Para tanto, use os seguintes
+	comandos:
+      </p>
+		
+      <p><b><tt>arm-eabi-as arquivo_de_entrada.s -g -o arquivo_de_saida.o</tt></b></p>
+      <p><b><tt>arm-eabi-ld arquivo_de_entrada.o -g -o arquivo_de_saida_do_ligador -Ttext=0x77802000 -Tdata=0x77802050</tt></b></p>
+      <p>
+	Após isso, <b>gere normalmente a imagem do cartão SD</b>.
+	Em seguida, será necessário que você utilize 2 terminais, um
+	para o simulador e outro para o gdb. No terminal do simulador,
+	execute o seguinte comando:
+      </p>
+      <p><b><tt>arm-sim --rom=/home/specg12-1/mc404/simulador/dumboot.bin --sd=disk.img -g</tt></b></p>
+      
+      <p>
+	Nesse momento, o simulador será iniciado mas irá aguardar uma
+	conexão do gdb na porta 5000. Para efetuar essa conexão e
+	iniciar a simulação, é preciso executar o programa gdb no
+	outro terminal com a seguinte linha de comando:
+      </p>
+      <p><b><tt>arm-eabi-gdb arquivo_de_saida_do_ligador</tt></b></p>
+      
+      <p>
+	O gdb é então inicializado, e podemos entrar com comandos
+	para que ele se conecte ao simulador e permita realizar a
+	depuração do código. Para tanto, entre com o seguinte comando
+	no gdb:
+      </p>
+      
+      <p><b><tt>target remote localhost:5000</tt></b></p>		
+      <p>
+	Esse comando conecta o gdb ao simulador; note no outro
+	terminal que o simulador está a ponto de começar a simulação,
+	não tendo de fato começado devido ao gdb, que está no controle
+	da aplicação. Para que analisemos o código da aplicação de
+	interesse e não do sistema <tt>DummyOS</tt>, vamos atribuir
+	um <i>breakpoint</i> na função <tt>main</tt>, através do
+	comando <b><tt>b main</tt></b>, no gdb - <tt>b</tt> é
+	abreviação de <i>break</i>. Em seguida, podemos prosseguir com
+	a execução, usando para isso o
+	comando <b><tt>continue</tt></b> no gdb. Repare que o
+	simulador irá executar até a primeira linha de sua
+	função <tt>main</tt>, então o gdb irá parar a execução para
+	que você possa efetuar a depuração.  Nesse ponto, use o
+	comando <b><tt>si</tt></b> (abreviação de
+	<i>step instruction</i>) no gdb para executar seu programa
+	passo a passo. Pode-se usar o comando
+	<b><tt>info register</tt></b> para ver o valor
+	dos registradores. Mais comandos do gdb estão disponíveis no
+	documento
+	<a href="http://www.ic.unicamp.br/%7Eedson/disciplinas/mc404/2015-2s/ab/labs/lab04/apostila_ARM.pdf"><tt>apostila_ARM.pdf</tt></a>
+	e no manual da ferramenta gdb em
+	<a href="https://sourceware.org/gdb/current/onlinedocs/gdb"><tt>https://sourceware.org/gdb/current/onlinedocs/gdb</tt></a>.
+      </p>
+		
+      <h3>Informações importantes/Dicas</h3>
+	
+      <ul>
+	<li>Para redirecionar a saída do simulador para um arquivo,
+	  execute o seguinte comando:
+	  <br>
+	  <b><tt>(arm-sim --rom=/home/specg12-1/mc404/simulador/dumboot.bin --sd=disk.img 2&gt;&amp;1) &gt; raXXXXXX.out</tt></b>
+	  <br>
+	  Note que você ainda precisa disparar o comando <tt>ctrl+C</tt>
+	  para terminar a simulação! Após o término, o arquivo <tt>raXXXXXX.out</tt>
+	  conterá a saída do simulador.</li>
+	
+	<li>Para maiores informações sobre o simulador, inclusive como
+	  utilizá-lo em conjunto com o GDB para depuração, veja o documento
+	  <a href="http://www.ic.unicamp.br/%7Eedson/disciplinas/mc404/2015-2s/ab/labs/lab04/apostila_ARM.pdf"><tt>apostila_ARM.pdf</tt></a>.</li>
+	
+	<li>Alguns comandos ficam extensos devido à caminhos longos, como
+	  <tt>/home/specg12-1/mc404/simulador/dummyos.elf</tt>.
+	  Pode-se utilizar a ferramenta <tt>ln</tt> para criar <i>links</i>
+	  simbólicos e reduzir o tamanho dos comandos. Podemos, por exemplo,
+	  fazer 
+	  <br>
+	  <tt>ln -s /home/specg12-1/mc404/simulador/dummyos.elf dummylink</tt>
+	  <br>
+	  de modo que agora não precisaremos mais colocar todo o caminho para
+	  <tt>dummyos.elf</tt>, bastando colocar <tt>dummylink</tt> no lugar.
+	  O comando para gerar a imagem do SD ficaria então:
+	  <br>
+	  <tt>mksd.sh --so dummylink --user arquivo_de_saida_do_ligador</tt>.
+	</li>
+      </ul>
+      
+      <h3>Entrega e avaliação</h3>
+      
+      <p>
+	Endereço da atividade no sistema SuSy:
+	<a href="https://susy.ic.unicamp.br:9999/mc404ab/Lab4" target="_blank">
+	  https://susy.ic.unicamp.br:9999/mc404ab/Lab4</a>
+      </p>
+      
+      <ul>
+        <li>
+	  <b>Você deve submeter APENAS um arquivo comprimido
+             denominado raXXXXXX.tar.gz</b> (em que XXXXXX é seu RA com 6 dígitos) que
+             contenha tanto o código em linguagem de montagem quanto a saída
+             do simulador. Para comprimir os arquivos, use o comando
+             "<tt>tar -czf raXXXXXX.tar.gz raXXXXXX.s raXXXXXX.out</tt>".
+	</li>
+      </ul>
+    
+    </div>
+  
+
+</body></html>
