@@ -1,0 +1,68 @@
+#######################
+# Henrique N. Facioli #
+# RA : 157986         #
+# Lab 02              #
+#######################
+
+# --------- Pensamento --------- #
+
+# Colocar a velocidade na posicao 105
+# Coloca na posicao 201 o valor A
+# Coloca na posicao 203 o valor 0 (K)
+# Definir a posicao 204 com valor 9
+# Definir a posicao 205 com valor 1
+
+# 000
+# LOAD MQ,M(201)            - Carrega em MQ o valor Gravidade (10)
+# MUL M(105)                - Multiplica MQ por AC (v*g)
+
+# 001
+# LOAD MQ                   - Passa o valor de MQ para AC
+# STORE(105)                - Armazena v*g no lugar da v
+
+# 002
+# RSH                       - Divide por 2 o v*g
+# STORE(203)                - Armazena em k
+
+# 003
+# LOAD(105)                 - Carrega v*g
+# DIV(203)                  - Divide por k
+
+# 004
+# LOAD MQ                   - Passa o quociente para AC
+# ADD(203)                  - Soma o quociente com k
+
+# 005
+# RSH                       - Divide por 2
+# STORE(203)                - Salva K
+
+# 006
+# LOAD(204)                 - Carrega o contador da memoria
+# SUB(205)                  - Subtrai 1 do contador
+
+# 007
+# STORE(204)                - Salva ela
+# JUMP+ M(X,a,b)            - Realiza um pulo para o inicio baseado em 204
+
+# 008
+# LOAD(203)                 - Recupera da memória o valor de k
+# Pular para a ultima posição do programa para encerrar.
+
+
+# --------- Código em hex --------- #
+
+105 00 000 00 00A # Velocidade
+201 00 000 00 00A # Gravidade
+203 00 000 00 000 # K
+204 00 000 00 009 # Contador
+205 00 000 00 001 # Numero para subtrair
+
+000 09201 0B105
+001 0A000 21105
+002 15000 21203
+003 01105 0C203
+004 0A000 05203
+005 15000 21203
+006 01204 06205
+007 21204 0F003
+008 01203 0D400

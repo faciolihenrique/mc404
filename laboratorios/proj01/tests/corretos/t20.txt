@@ -1,0 +1,20 @@
+.set VINTE 20
+.org 0x0000000100
+dados: #aqui irao os dados do programa
+
+	.word VINTE
+	.wfill 10 50
+
+.org 0
+programa: #aqui serao as intrucoes
+
+ADD "0x0000000100"
+.align 1
+varx: .word 1
+SUB "varx"
+LSH
+STaddr "0" # mudando o valor do endereco
+
+.org 50
+.word 42 # resposta da vida do universo e tudo mais
+

@@ -1,0 +1,653 @@
+<!--?xml version="1.0" encoding="UTF-8"?-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"><head>
+    <link href="lab08_files/bootstrap.css" rel="stylesheet">
+      <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8" charset="utf-8">
+	<style type="text/css">
+	  .table1 {
+	  border: 1px solid #000;
+	  }
+	</style>
+      </head>
+
+      <body style="background: transparent; margin: 0pt">
+
+	<h2>Atividade de Laboratório 8</h2>
+
+        <h3>Objetivos</h3>
+
+	<p>
+	  Nesta atividade você começará a desenvolver código a nível
+	  de sistema e se familiarizará com o conceito de
+	  interrupções.
+	</p>
+
+	
+        <h3>Introdução</h3>
+
+	<p>
+	  Na parte 3 do curso de MC404 você desenvolverá habilidades
+	  para fazer programas a nível de sistema para a plataforma
+	  ARM. Entende-se programas a nível de sistema como códigos
+	  que possuem os mesmos privilégios que um sistema operacional
+	  normalmente tem sobre a máquina que ele executa. Isso é
+	  bastante diferente dos programas desenvolvidos até agora,
+	  que executavam em modo de usuário e não tinham acesso direto
+	  aos periféricos do computador.
+	</p>
+
+        <h3>Atividade</h3>
+
+	<p>
+	  Neste laboratório, você deve escrever um pequeno programa em
+	  linguagem de montagem do ARM na modalidade código de
+	  sistema. Isso significa que o seu programa não depende mais
+	  de um sistema operacional para executar e possui total
+	  controle sobre o processador. Além disso, ele tem liberdade
+	  para configurar os periféricos de <i>hardware</i> e tratar
+	  as interrupções geradas por eles.
+	</p>
+
+	<p>
+	  Seu objetivo é escrever código que se inicie no endereço 0
+	  de memória, que é o primeiro código ARM executado quando o
+	  processador é ligado, configurar um dispositivo
+	  de <i>hardware</i> chamado GPT (<i>General Purpose
+	  Timer</i>) para gerar interrupções a cada 100 ciclos do
+	  relógio (<i>clock</i>) de periféricos e tratar tais
+	  interrupções. A cada interrupção gerada, você deve
+	  incrementar um contador, que deve ser armazenado na primeira
+	  posição da seção <tt>.data</tt> do código do sistema, ou
+	  seja, no endereço <tt>0x77801800</tt>.  Dessa maneira, você
+	  criará a base da funcionalidade de um relógio de sistema.
+	</p>
+
+        <h4>Programação a nível de sistema</h4>
+
+	<p>
+	  O diagrama abaixo mostra como o espaço de endereçamento
+	  físico é mapeado nos periféricos dos sistema. Por exemplo,
+	  os endereços físicos na faixa <tt>7000 0000 - 8000 0000</tt>
+	  são mapeados para a memória principal do sistema; uma
+	  memória RAM DDR2 que situa-se fora do <i>chip</i> do
+	  processador.
+	</p>
+
+	<p>
+	  </p><table style="border: 1px solid black; padding: 10px;">
+	    <tbody><tr>
+	      <td style="width:100px; text-align:center; color:white; background-color: #104E8B; border: 1 px solid black; padding: 4 px;">
+		ARM <br> CORE
+	      </td>
+	      <td style="color: white; background-color: #00688B; border: 1 px solid black; padding: 4 px;">
+		<div class="rotacionar">AMBA</div>
+	      </td>
+	      <td>
+		<table> 
+		  <tbody><tr>
+		    <td style="font-family:monospace; font-size:12px;">0000 0000 - 0001 0000</td>
+		    <td style="border: 1 px solid black; padding: 4 px; color: white; background-color:#330066;">
+		      Memória RAM interna de boot
+		    </td>
+		  </tr>
+		  <tr>
+		    <td style="font-family:monospace; font-size:12px;">0FFF C000 - 0FFF FFFF</td>
+		    <td style="border: 1 px solid black; padding: 4 px; color: white; background-color:#003366;">
+		      TZIC (<i>TrustZone Interrupt Controller</i>)
+		    </td>
+		  </tr>
+		  <tr>
+		    <td style="font-family:monospace; font-size:12px;">53F8 4000 - 53F8 400B</td>
+		    <td style="border: 1 px solid black; padding: 4 px; color: white; background-color:#003333;">
+		      GPIO (<i>General Purpose Input Output</i>)
+		    </td>
+		  </tr>
+		  <tr>
+		    <td style="font-family:monospace; font-size:12px;">53FA 0000 - 53FA 3FFF</td>
+		    <td style="border: 1 px solid black; padding: 4 px; color: white; background-color:#006666;">
+		      GPT (<i>General Purpose Timer</i>)
+		    </td>
+		  </tr>
+		  <tr>
+		    <td style="font-family:monospace; font-size:12px;">53FB C000 - 53FB FFFF</td>
+		    <td style="border: 1 px solid black; padding: 4 px; color: white; background-color:teal;">
+		      UART-1 (Interface serial)
+		    </td>
+		  </tr>
+		  <tr>
+		    <td style="font-family:monospace; font-size:12px;">7000 0000 - 8000 0000</td>
+		    <td style="border: 1 px solid black; padding: 4 px; color: white; background-color:navy;">
+		      Memória RAM Off-Chip (DDR2)
+		    </td>
+		  </tr>
+		</tbody></table>
+	      </td>
+	    </tr>
+	  </tbody></table>
+	<p></p>
+
+	<p> 
+	  É importante notar que os primeiros endereços do espaço de
+	  endereçamento (endereços 0x00 a 0x20) são <b>reservados</b>
+	  para o vetor de interrupções. Quando ocorrer uma interrupção
+	  ou exceção no processador, o fluxo de execução será desviado
+	  para um desses endereços e o modo de operação do processador
+	  será modificado. O modo de execução atual é codificado no
+	  registrador CPSR e determina qual o subconjunto de
+	  registradores são acessíveis pelas instruções. Veja abaixo:
+	</p>
+
+	<p>
+	  </p><table border="1">
+	    <tbody><tr style="font-weight:bold;">
+	      <td> Modo </td> 
+	      <td> Endereço de salto </td> 
+	      <td> Valor do LR_&lt;modo&gt; </td> 
+	      <td> Motivo do salto </td> 
+	      <td> Registradores visíveis </td>
+	    </tr>
+	    <tr>
+	      <td> Undefined Instruction </td>
+	      <td style="font-family:monospace; font-size:12px; text-align:center;"> 04 </td>
+	      <td style="font-family:monospace; font-size:12px; text-align:center;"> PC + 4</td> 
+	      <td> Uma instrução inválida foi encontrada na posição de memória apontada por PC. </td> 
+	      <td> 
+		<table class="table1">
+		  <tbody><tr>
+		    <td class="table1">R15</td>
+		    <td class="table1">R14_und</td>
+		    <td class="table1">R13_und</td>
+		    <td class="table1">R12</td>
+		    <td class="table1">R11</td>
+		    <td class="table1">R10</td>
+		    <td>...</td>
+		    <td class="table1">R1</td>
+		    <td class="table1">R0</td>
+		    <td class="table1">CPSR</td>
+		    <td class="table1">SPSR_und</td>
+		  </tr>
+		</tbody></table> 
+	      </td>
+	    </tr>
+
+	    <tr>
+	      <td> Supervisor (interrupção por <i>software</i>) </td>
+	      <td style="font-family:monospace; font-size:12px;  text-align:center;"> 08 </td> 
+	      <td style="font-family:monospace; font-size:12px; text-align:center;"> PC + 4 </td> 
+	      <td> Uma instrução SVC/SWI foi executada e está solicitando uma
+		função do sistema operacional (<i>syscall</i>).  
+	      </td>
+	      <td> 
+		<table class="table1">
+		  <tbody><tr>
+		    <td class="table1">R15</td>
+		    <td class="table1">R14_svc</td>
+		    <td class="table1">R13_svc</td>
+		    <td class="table1">R12</td>
+		    <td class="table1">R11</td>
+		    <td class="table1">R10</td>
+		    <td>...</td>
+		    <td class="table1">R1</td>
+		    <td class="table1">R0</td>
+		    <td class="table1">CPSR</td>
+		    <td class="table1">SPSR_svc</td>
+		  </tr>
+		</tbody></table> 
+	      </td>
+	    </tr>
+	    <tr>
+	      <td> Abort (instrução) </td>
+	      <td style="font-family:monospace; font-size:12px;  text-align:center;"> 0c </td> 
+	      <td style="font-family:monospace; font-size:12px; text-align:center;"> PC + 4 </td> 
+	      <td> O processador tentou buscar uma instrução da memória, mas o barramento gerou um erro. </td> 
+	      <td> 
+		<table class="table1">
+		  <tbody><tr>
+		    <td class="table1">R15</td>
+		    <td class="table1">R14_abt</td>
+		    <td class="table1">R13_abt</td>
+		    <td class="table1">R12</td>
+		    <td class="table1">R11</td>
+		    <td class="table1">R10</td>
+		    <td>...</td>
+		    <td class="table1">R1</td>
+		    <td class="table1">R0</td>
+		    <td class="table1">CPSR</td>
+		    <td class="table1">SPSR_abt</td>
+		  </tr>
+		</tbody></table> 
+	      </td>
+	    </tr>
+	    <tr>
+	      <td> Abort (dado)</td>
+	      <td style="font-family:monospace; font-size:12px;  text-align:center;"> 10 </td> 
+	      <td style="font-family:monospace; font-size:12px; text-align:center;"> PC + 8 </td> 
+	      <td> O processador tentou buscar um dado da memória, mas o barramento gerou um erro. </td> 
+	      <td> 
+		<table class="table1">
+		  <tbody><tr>
+		    <td class="table1">R15</td>
+		    <td class="table1">R14_abt</td>
+		    <td class="table1">R13_abt</td>
+		    <td class="table1">R12</td>
+		    <td class="table1">R11</td>
+		    <td class="table1">R10</td>
+		    <td>...</td>
+		    <td class="table1">R1</td>
+		    <td class="table1">R0</td>
+		    <td class="table1">CPSR</td>
+		    <td class="table1">SPSR_abt</td>
+		  </tr>
+		</tbody></table> 
+	      </td>
+	    </tr>
+	    <tr>
+	      <td> IRQ </td>
+	      <td style="font-family:monospace; font-size:12px;  text-align:center;"> 18 </td> 
+	      <td style="font-family:monospace; font-size:12px; text-align:center;"> PC + 8 </td> 
+	      <td> Ocorreu uma <b>interrupção</b> de <i>hardware</i>. </td> 
+	      <td> 
+		<table class="table1">
+		  <tbody><tr>
+		    <td class="table1">R15</td>
+		    <td class="table1">R14_irq</td>
+		    <td class="table1">R13_irq</td>
+		    <td class="table1">R12</td>
+		    <td class="table1">R11</td>
+		    <td class="table1">R10</td>
+		    <td>...</td>
+		    <td class="table1">R1</td>
+		    <td class="table1">R0</td>
+		    <td class="table1">CPSR</td>
+		    <td class="table1">SPSR_irq</td>
+		  </tr>
+		</tbody></table> 
+	      </td>
+	    </tr>
+	    <tr>
+	      <td> FIQ </td>
+	      <td style="font-family:monospace; font-size:12px; text-align:center;"> 1c </td> 
+	      <td style="font-family:monospace; font-size:12px; text-align:center;"> PC + 8 </td> 
+	      <td> Ocorreu uma <b>interrupção</b> de <i>hardware</i> (modo rápido - <i>Fast Interrupt Request</i>). </td> 
+	      <td> 
+		<table class="table1">
+		  <tbody><tr>
+		    <td class="table1">R15</td>
+		    <td class="table1">R14_fiq</td>
+		    <td class="table1">R13_fiq</td>
+		    <td class="table1">R12_fiq</td>
+		    <td class="table1">R11_fiq</td>
+		    <td class="table1">R10_fiq</td>
+		    <td class="table1">R9_fiq</td>
+		    <td class="table1">R8_fiq</td>
+		    <td class="table1">R7</td>
+		    <td class="table1">R6</td>
+		    <td class="table1">R5</td>
+		    <td>...</td>
+		    <td class="table1">R1</td>
+		    <td class="table1">R0</td>
+		    <td class="table1">CPSR</td>
+		    <td class="table1">SPSR_fiq</td>
+		  </tr>
+		</tbody></table> 
+	      </td>
+	    </tr>
+	  </tbody></table>
+	<p></p>
+
+	<p> A tabela acima nos diz, por exemplo, que quando ocorrer uma interrupção de
+	  <i>hardware</i> comum, independentemente de qual instrução esteja sendo
+	  executada, e supondo que as interrupções estejam habilitadas, o processador irá
+	  saltar para o endereço <b>0x18</b> e irá trocar de modo. Lembre-se que o CPSR
+	  codifica, além de diversas <i>flags</i>, o modo atual do processador, se interrupções IRQ
+	  estão habilitas e se interrupções FIQ estão	habilitadas.
+	  No momento da troca de modo, o CPSR antigo é salvo no SPSR
+	  do novo modo. Também, o valor de PC + 8 é salvo	no registrador de retorno R14_irq
+	  (ou LR_irq), e PC recebe 0x18 para concretizar o salto.
+	</p>
+
+	<p> Note ainda que, uma vez no modo de operação IRQ, todas as instruções que acessam
+	  registradores, ao acessar os registradores R13 e
+	  R14 (SP e LR) irão enxergar uma versão diferente (R13_irq e R14_irq), automaticamente.
+	  Esse mecanismo é chamado de <i>banked registers</i> e é
+	  feito para evitar que o código que trata interrupções suje os
+	  registradores do código de usuário que estava executando quando a
+	  interrupção ocorreu. Entretanto, perceba que, no modo IRQ, os
+	  registradores R12 a R0 ainda são os mesmos que o do modo
+	  usuário. Portanto, você precisa salvá-los na pilha sempre que for
+	  alterar qualquer um desses.</p> 
+	
+	<p>
+	  Ao ligarmos o processador ou ativarmos o
+	  sinal de <i>reset</i>, o fluxo de execução
+	  é desviado para o endereço 0x0 e o modo de
+	  execução é modificado para SUPERVISOR
+	  (svc).  Assim sendo, esta posição de
+	  memória deve conter código para tratar a
+	  operação de <i>reset</i>
+	</p>
+
+	<p>
+	  O modo USER é o modo que temos utilizado até então para execução dos programas de usuário. Ele é o único modo
+	  que possui restrições quanto às instruções que podem ser executadas - instruções que requerem modo privilegiado não
+	  podem ser executadas nesse modo. Por esse motivo, justifica-se a
+	  existência de outro modo do ARM não listado acima, o modo SYSTEM: tal modo
+	  não contém registradores próprios, ou seja, ele utiliza os mesmos
+	  que são visíveis no modo USER. Entretanto, o modo SYSTEM contém privilégios para
+	  executar qualquer instrução do ARM. </p>
+
+	<p> Quando uma exceção ocorre, as interrupções do tipo IRQ são sempre
+	  desabilitadas.  É responsabilidade do programador reabilitá-las, caso
+	  ele opte por tornar o código supervisor propenso a sofrer
+	  interrupções.</p>
+
+        <h4>Como escrever seu código</h4>
+
+	<p>Para escrever seu código, primeiramente coloque uma seção alocável denominada
+	  <tt>iv</tt> no endereço 0x0 e nessa seção, um vetor de interrupções.
+	  Veja o código abaixo como exemplo:</p>
+        <pre>.org 0x0
+.section .iv,"a"
+
+_start:		
+
+interrupt_vector:
+
+    b RESET_HANDLER
+.org 0x18
+    b IRQ_HANDLER
+</pre>			  
+
+	<p> Note que temos, no endereço 0x0, um salto para <tt>RESET_HANDLER</tt>;
+	  esse será o tratador de <i>reset</i>. Do mesmo modo, no endereço
+	  0x18 temos um salto para o tratador de interrupções IRQ - é dentro
+	  de <tt>IRQ_HANDLER</tt> que você irá incrementar o contador, para
+	  fazer essa atividade. Note que em cada endereço, apenas há um salto;
+	  não se pode ter mais instruções por endereço, pois como já foi dito,
+	  os endereços de 0x0 a 0x20 são reservados e a cada um está atribuído um evento.</p>
+
+	<p>No início da seção de dados do código de sistema (a
+	  seção <tt>.data</tt>), aloque uma variável para armazenar o
+	  número de interrupções que aconteceram. Esta variável deve
+	  ser iniciada com o valor 0 e incrementada a cada
+	  interrupção. A variável deve ser armazenada no primeiro
+	  endereço da seção <tt>.data</tt>, ou seja, no
+	  endereço <tt>0x77801800</tt>. Deve-se também inicializar o
+	  vetor de interrupções no co-processador 15 do ARM; veja o
+	  exemplo de código abaixo, para saber como vai ficar o início
+	  de sua seção <tt>.text</tt>:</p>
+	
+        <pre>.org 0x100
+.text
+
+    @ Zera o contador
+    ldr r2, =CONTADOR  @lembre-se de declarar esse contador em uma secao de dados! 
+    mov r0,#0
+    str r0,[r2]
+
+RESET_HANDLER:
+
+    @Set interrupt table base address on coprocessor 15.
+    ldr r0, =interrupt_vector
+    mcr p15, 0, r0, c12, c0, 0
+
+    @@@...continua tratando o reset
+    </pre>				 
+
+	<p>
+	  No código acima, veja que existe uma seção de dados com o seu contador,
+	  sendo ele zerado logo no início da seção de código. Após isso, já existe a rotina
+	  de tratamento de <i>reset</i>, e nessa rotina as primeiras 2 instruções carregam
+	  o vetor de interrupções no co-processador 15.
+	</p>
+
+	<p> Em seguida, ainda no tratador de <i>reset</i>, você deve enviar
+	  dados para o <i>hardware</i> GPT e configurá-lo para a tarefa de contar até 100 (decimal) e,
+	  quando chegar a este valor, gerar uma interrupção e voltar a contar do zero.
+	  Para tanto, uma referência importante é o <i>datasheet</i> do GPT, que  pode ser encontrado
+	  em: <a href="http://www.ic.unicamp.br/%7Eedson/disciplinas/mc404/2015-2s/ab/labs/lab08/IMX53-gpt.pdf">gpt.pdf</a>. Em especial, preste atenção aos
+	  registradores do GPT e de seus respectivos endereços absolutos na memória
+	  (veja a tabela na sexta página do <i>datasheet</i>).
+	  Você pode ler ou escrever em qualquer registrador do GPT através
+	  de instruções <i>load/store</i> que acessem tais endereços.</p>
+	
+	<p> 
+	  <b>Para configurar o GPT:</b>
+	  </p><ol>
+	    <li> Você deve escrever no registrador GPT_CR (<i>control
+		register</i>) o valor 0x00000041 que irá habilitá-lo e configurar o
+	      <i>clock_src</i> para periférico.  Isto significa que o contador irá contar
+	      a cada ciclo do relógio dos periféricos do sistema. Note que o
+	      relógio (<i>clock</i>) do processador é muito mais alto (~1GHz) do
+	      que o relógio dos periféricos (~200MHz).
+	    </li>
+	    <li> Zere o prescaler (GPT_PR) e coloque em GPT_OCR1 o valor que
+	      você deseja contar.  Quando o comparador do GPT determinar que a
+	      contagem se igualou ao conteúdo de GPT_OCR1, uma interrupção to tipo
+	      <i>Output Compare Channel 1</i> será gerada.
+	    </li>
+	    <li> Para demonstrar interesse nesse tipo específico de interrupção do GPT,
+	      grave 1 no registrador GPT_IR. Isto irá habilitar a interrupção
+	      <i>Output Compare Channel 1</i>, que inicia-se desligada.
+	    </li>
+	  </ol>
+	<p></p>
+	
+	<p> Após configurar o GPT, você deve configurar o TZIC (<i>TrustZone
+	    Interrupt Controller</i>) e habilitar as interrupções no ARM.
+	  Apenas o GPT e o TZIC controlam diretamente a porta de interrupções do ARM.
+	  O GPT conecta-se ao controlador de interrupções e possui um número de
+	  interrupção associado. No caso da plataforma iMX, que é a plataforma simulada
+	  no simulador ARM da disciplina, <b>esse número é o 39</b>. É de responsabilidade
+	  do controlador de interrupções determinar se, dentre as várias 
+	  interrupções que podem estar ocorrendo, essas devem interromper o
+	  processador ou não. Para tanto, você deve configurar o TZIC para se
+	  importar apenas com a interrupção 39, que é a interrupção referente ao
+	  GPT - o TZIC deve simplesmente passá-la direto para o processador, sempre que ela ocorrer.
+	  Para uma análise mais profunda do TZIC, seu <i>datasheet</i> está disponível
+	  em: <a href="http://www.ic.unicamp.br/%7Eedson/disciplinas/mc404/2015-2s/ab/labs/lab08/IMX53-tzic.pdf">tzic.pdf</a>.
+	  Abaixo temos um diagrama ilustrando	o comportamento do TZIC,
+	  dos outros periféricos que solicitam interrupções e do <i>core</i>
+	  do ARM. A comunicação ocorre da esquerda para a direita.
+	  Os periféricos informam o TZIC que querem interromper o
+	  processador, e então o TZIC toma a decisão de bloquear ou não o
+	  processador.
+	</p>
+
+	<p>
+	  </p><table style="border: 1 px solid black; padding: 10px;">
+	    <tbody><tr>
+	      <td>
+		<table> 
+		  <tbody><tr>
+		    <td style="border: 1 px solid black; padding: 4 px; color: white; background-color:#006666;">
+		      GPT
+		    </td>
+		  </tr>
+		  <tr>
+		    <td style="border: 1 px solid black; padding: 4 px; color: white; background-color:teal;">
+		      UART-1
+		    </td>
+		  </tr>
+		  <tr>
+		    <td style="border: 1 px solid black; padding: 4 px; color: white; background-color:#003366;">
+		      ...
+		    </td>
+		  </tr>
+		</tbody></table>
+	      </td>
+	      <td style="width:100px; text-align:center; color:white; background-color: #006688; border: 1 px solid black; padding: 4 px;">
+		TZIC
+	      </td>
+	      <td style="width:100px; text-align:center; color:white; background-color: #104E8B; border: 1 px solid black; padding: 4 px;">
+		ARM <br> CORE
+	      </td>
+	    </tr>
+	  </tbody></table>
+	<p></p>
+
+	<p>Além do TZIC, falta habilitar as interrupções no ARM.
+	  Para configurar o processador em um modo que pode ser interrompido, deve-se usar a instrução MSR
+	  (<a href="http://www.altera.com/literature/third-party/archives/ddi0100e_arm_arm.pdf">este documento</a>
+	  explica em detalhes a instrução). O modelo da instrução que será usada aqui é: </p>
+
+        <pre>    msr  CPSR_c,  #0x13   @ SUPERVISOR mode, IRQ/FIQ enabled
+        </pre>
+
+	<p>A instrução acima irá sobrescrever os <i>bits</i> de CONTROLE (c) do
+	  registrador CPSR com 00010011 (== 0x13). Tal máscara corresponde a dizer que 
+	  as interrupções FIQ/IRQ estão HABILITADAS e o modo é SUPERVISOR.
+	  
+	  Informações detalhadas sobre os <i>bits</i> do CPSR podem ser
+	  encontradas <a href="http://simplemachines.it/doc/arm_inst.pdf">nesse material</a>.
+	  
+
+	</p><p> O código modelo abaixo demonstra como configurar o TZIC para esse
+	  laboratório, e também como habilitar as interrupções:</p>
+        <pre>SET_TZIC:
+    @ Constantes para os enderecos do TZIC
+    .set TZIC_BASE,             0x0FFFC000
+    .set TZIC_INTCTRL,          0x0
+    .set TZIC_INTSEC1,          0x84 
+    .set TZIC_ENSET1,           0x104
+    .set TZIC_PRIOMASK,         0xC
+    .set TZIC_PRIORITY9,        0x424
+
+    @ Liga o controlador de interrupcoes
+    @ R1 &lt;= TZIC_BASE
+
+    ldr	r1, =TZIC_BASE
+
+    @ Configura interrupcao 39 do GPT como nao segura
+    mov	r0, #(1 &lt;&lt; 7)
+    str	r0, [r1, #TZIC_INTSEC1]
+
+    @ Habilita interrupcao 39 (GPT)
+    @ reg1 bit 7 (gpt)
+
+    mov	r0, #(1 &lt;&lt; 7)
+    str	r0, [r1, #TZIC_ENSET1]
+
+    @ Configure interrupt39 priority as 1
+    @ reg9, byte 3
+
+    ldr r0, [r1, #TZIC_PRIORITY9]
+    bic r0, r0, #0xFF000000
+    mov r2, #1
+    orr r0, r0, r2, lsl #24
+    str r0, [r1, #TZIC_PRIORITY9]
+
+    @ Configure PRIOMASK as 0
+    eor r0, r0, r0
+    str r0, [r1, #TZIC_PRIOMASK]
+
+    @ Habilita o controlador de interrupcoes
+    mov	r0, #1
+    str	r0, [r1, #TZIC_INTCTRL]
+
+    @instrucao msr - habilita interrupcoes
+    msr  CPSR_c, #0x13       @ SUPERVISOR mode, IRQ/FIQ enabled
+        </pre>
+
+        
+	<p>Após habilitar o TZIC, a interrupção pode ser gerada a qualquer momento e o seu
+	  código irá saltar para o endereço 0x18 quando isso acontecer. Então você deve,
+	  nesse ponto do seu código, entrar em um laço infinito que aguarda a interrupção.
+	  Um exemplo de laço infinito é: </p> 
+        <pre>laco:
+    b laco
+        </pre>
+
+	<p>Seu código agora oficialmente não faz mais nada até que uma interrupção aconteça.
+	  No entanto, note que uma vez que a interrupção acontece, você deve tratá-la através
+	  da rotina que foi cadastrada no endereço 0x18 (no nosso exemplo chamamos de IRQ_HANDLER).
+	  Dentro de IRQ_HANDLER, a primeira coisa a ser feita é gravar o valor 0x1 no registrador GPT_SR,
+	  do GPT. Isso é necessário pois informa ao GPT que o processador já está ciente de que ocorreu
+	  a interrupção, e ele pode limpar a <i>flag</i> OF1. Se não for feito isso, 
+	  o GPT irá continuar sinalizando ao processador que uma interrupção ocorreu.</p>
+	
+	<p>Ainda em IRQ_HANDLER, incremente seu contador na memória e retorne da
+	  interrupção, lembrando-se de que o valor atual de LR é PC + 8,
+	  e deve ser corrigido, subtraindo-se 4 dele antes do retorno.
+	  Note que o retorno, nesse caso, não é como o retorno de uma função. A instrução
+	  <tt>mov pc, lr</tt> irá retornar para o valor de LR_irq, mas não irá voltar ao CPSR
+	  antigo (modo SUPERVISOR, habilitação de interrupções, etc), que está em
+	  SPSR_irq. Para tanto, use a  instrução </p><pre>movs pc, lr</pre>que retorna e volta
+	  CPSR ao valor correto que estava antes da interrupção. <p></p>
+
+
+
+        <h4>Compilando e testando seu programa</h4>
+
+	<p> 
+	  Para compilar e rodar seu programa, em geral deve-se seguir os passos do Laboratório 4.
+	  Contudo, agora não vamos mais usar o DummyOS - seu programa fará as vezes de sistema operacional.
+	  Na montagem do cartão SD, observe que usamos um código de usuário denominado "faz_nada".
+	  Esse código de fato só é usado pois o utilitário <tt>mksd.sh</tt> exige que se coloque código de usuário.
+	  Para gerar o "faz_nada", crie um programa que possui o código
+          </p><pre>.text
+    and r0,r0,r0
+          </pre>
+	  e compile/ligue esse executável, colocando a <i>flag</i> <tt>-Tdata=0x77801900</tt> no ligador!
+	  
+	  Abaixo, veja como compilar e testar o programa desse laboratório:<p></p>
+
+        <pre># Entre na pasta onde esta o fonte do programa
+
+# Monte o seu ambiente
+source /home/specg12-2/mc404/simulador/set_path.sh
+
+# Para compilar e ligar o seu programa (note a diferença no ligador)
+arm-eabi-as -g raXXXXXX.s -o raXXXXXX.o
+arm-eabi-ld raXXXXXX.o -o raXXXXXX -g --section-start=.iv=0x778005e0 -Ttext=0x77800700 -Tdata=0x77801800 -e 0x778005e0
+
+# Monte a imagem do cartão SD: (note que seu programa eh o SO !!!)
+mksd.sh --so raXXXXXX --user faz_nada
+
+# Abra o simulador com suporte ao GDB
+arm-sim --rom=/home/specg12-1/mc404/simulador/simulador_player/bin/dumboot.bin --sd=disk.img -g
+
+# Abra outro terminal e monte o seu ambiente
+source /home/specg12-2/mc404/simulador/set_path.sh
+
+# Conecte no simulador utilizando o GDB
+arm-eabi-gdb raXXXXXX
+(gdb) target remote localhost:5000       # conecte no simulador
+(gdb) b raXXXXXX.s:&lt;linha&gt;               # substitua &lt;linha&gt; por uma linha dentro de IRQ_HANDLER 
+(gdb) c                                  # execute ate encontrar um <i>breakpoint</i>
+(gdb) p *(int)0x77801800                 # quando parar no tratador de interrupcoes, imprima o conteudo do contador
+(gdb) c
+(gdb) ...
+        </pre>
+
+        <h3>Entrega e avaliação</h3>
+
+      	<p>Deve ser submetido apenas um arquivo denominado raXXXXXX.s (com XXXXXX sendo seu RA de 6 dígitos)
+	  no SuSy. A atividade está em <a href="https://susy.ic.unicamp.br:9999/mc404ab/Lab8" target="_blank">
+	    https://susy.ic.unicamp.br:9999/mc404ab/Lab8</a>
+      	</p>
+        
+        <h3>Sumário dos <i>links</i> apresentados nesse laboratório</h3>
+	<ul>
+	  <li>
+	    Informações sobre a instrução <tt>MSR</tt>: 
+	    <a href="http://infocenter.arm.com/help/topic/com.arm.doc.ddi0214b/CHDEHACE.html">
+	      http://infocenter.arm.com/help/topic/com.arm.doc.ddi0214b/CHDEHACE.html</a>
+	  </li>
+	  <li>
+	    Informações sobre os <i>bits</i> de CPSR: 
+	    <a href="http://simplemachines.it/doc/arm_inst.pdf">http://simplemachines.it/doc/arm_inst.pdf</a>
+	  </li>
+	  <li>
+	    <i>Datasheet</i> do GPT: <a href="http://www.ic.unicamp.br/%7Eedson/disciplinas/mc404/2015-2s/ab/labs/lab08/IMX53-gpt.pdf">gpt.pdf</a>
+	  </li>
+	  <li>
+	    <i>Datasheet</i> do TZIC: <a href="http://www.ic.unicamp.br/%7Eedson/disciplinas/mc404/2015-2s/ab/labs/lab08/IMX53-tzic.pdf">tzic.pdf</a>
+	  </li>
+	</ul>
+	<p></p>
+
+      
+
+    
+</body></html>

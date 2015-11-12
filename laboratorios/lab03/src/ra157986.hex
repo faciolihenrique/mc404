@@ -1,0 +1,68 @@
+#######################
+# Henrique N. Facioli #
+# RA : 157986         #
+# Lab 03              #
+#######################
+
+# --------- Pensamento em Código --------- #
+
+# Definir a posição 32 (50) com valor 1
+# 3FF -> N
+# 3FE -> pos x
+# 3FD -> pos y
+# Definir a posicao 40 com 0 -> Será usada para armazenar a soma
+
+# 000
+# LOAD(3FE)                     - Carrega da memoria a posicao do 1  vetor
+# STOR(004;8,19)                - Coloca esse valor para ser carregado em AC
+
+# 001
+# ADD(32)                       - Soma a posicao
+# STOR(3FE)                     - Armazena a posicao
+
+# 002
+# LOAD(3FD)                     - Carrega a posicao do vetor 2
+# STOR(004;28,39)               - Coloca esse valor para ser multiplicado em AC
+
+# 003
+# ADD(32)                       - Soma a posicao
+# STOR(3FD)                     - Armazena a posicao
+
+# 004
+# LOAD MQ,M(000)                - Carrega o valor do vetor 1
+# MUL(000)                      - Soma ao valor do vetor 2
+
+# 005
+# LOAD MQ                       - Passa a multiplicacao de MQ para AC
+# ADD(33)                       - Soma a multiplicacao com o somatorio
+
+# 006
+# STOR(33)                      - Armazena no somatorio
+# LOAD(3FF)                     - Carrega N
+
+# 007
+# SUB(32)                       - Subtrai 1
+# STOR(3FF)                      - Armazena N - 1
+
+# 008
+# JUMP+ (000;0;19)              - Pula para o primeira palavra se N > 0
+# LOAD(33)                      - Sai do loop, e carrega o somatorio em AC
+
+# 009
+# JUMP(400)                     - Finaliza o progama
+
+# --------- Código em hex --------- #
+
+000 01 3FE 12 004
+001 05 032 21 3FE
+002 01 3FD 13 004
+003 05 032 21 3FD
+004 09 000 0B 000
+005 0A 000 05 033
+006 21 033 01 3FF
+007 06 032 21 3FF
+008 0F 000 01 033
+009 0D 400 00 000
+
+032 00 000 00 001
+033 00 000 00 000

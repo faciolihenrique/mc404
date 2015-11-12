@@ -1,0 +1,16 @@
+inicio:
+LD "10"
+LD- "10"
+LD| "10"
+LD| "10"
+LDmq_mx "10"
+ST "10"
+ADD "inicio"
+ADD| "10"
+SUB "0x000000000A"
+SUB| "0x000000000A" 
+MUL "0x000000000A" 
+DIV "0x000000000A" 
+LSH
+RSH
+

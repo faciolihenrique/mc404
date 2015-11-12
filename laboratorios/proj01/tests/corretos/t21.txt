@@ -1,0 +1,9 @@
+.org 0x0000000100
+begin:
+  LD "rotulo2"
+	rotulo1: 
+	  RSH 
+	  rotulo2:
+rotulo3: 
+.align 2 
+  .word rotulo3:

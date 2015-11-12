@@ -1,0 +1,11 @@
+#testando esquerda e direita
+esquerda:
+	ADD "0"
+direita:
+	ADD "0"
+JMP "esquerda"
+JMP "direita"
+JUMP+ "esquerda"
+JUMP+ "direita"
+STaddr "esquerda"
+STaddr "direita"

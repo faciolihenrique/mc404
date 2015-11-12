@@ -1,0 +1,16 @@
+
+.org 0x0000000000
+LD|  "var1"
+loop:
+ADD  "var2"
+	  ST "var3"
+	  JUMP+ "loop"
+	var1:
+	  .word 0
+	  var2:
+	    .word 1
+		var3:
+		  .word 2
+		  end:
+		    JMP "end"
+
