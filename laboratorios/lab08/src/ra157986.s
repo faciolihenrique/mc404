@@ -1,10 +1,5 @@
 @ Henrique Noronha Facioli
 
-@@@ All teh sets @@@
-
-
-
-
 @@@ Start @@@
 .org 0x0
 .section .iv,"a"
