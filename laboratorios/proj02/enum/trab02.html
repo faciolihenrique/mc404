@@ -1,0 +1,1012 @@
+<!-- file:///home/julianomb/tmp/trab2/html_files/trab02.html -->
+<html><head>
+    <link rel="stylesheet" type="text/css" media="screen" href="trab02_files/bootstrap.htm">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  </head>
+
+  <body style="width: 900px; text-align: justify;">
+
+
+    <h1> Trabalho 2: Sistema de <i>software</i> do Uóli</h1>
+
+    <h2><b>Avisos</b></h2>
+    <p>
+      Nesta seção serão apresentados os avisos importantes referentes ao
+      trabalho 2. 
+      </p><ol>
+	<li> 
+	  <b>Prazos de entrega</b>
+	  <ul>
+	      <!-- <strike>18-12-2014, até as 23:59h - Fator de multiplicação 1.0x</strike> -->
+	    <li>
+	      26-11-2015, até as 23:59
+	      <ul>
+		<li>Fator de multiplicação 1.0x; e</li>
+	      </ul>
+	    </li>
+	    <li>
+	      27-11-2015, até as 23:59
+	      <ul>
+		<li>Fator de multiplicação 0.9x; e</li>
+	      </ul>
+	    </li>
+	    <li>
+	      28-11-2015, até as 23:59
+	      <ul>
+		<li>Fator de multiplicação 0.8x; e</li>
+	      </ul>
+	    </li>
+	    <li>
+	      39-11-2015, até as 23:59
+	      <ul>
+		<li>Fator de multiplicação 0.6x; e</li>
+	      </ul>
+	    </li>
+	  </ul>
+	</li>
+	<br>
+	<li> 
+	  <b>Utilizem o grupo da disciplina para dúvidas e esclarecimentos!</b> 
+	  O endereço é: <a href="https://groups.google.com/forum/#%21forum/unicamp-mc404-2s2015">
+	    https://groups.google.com/forum/#!forum/unicamp-mc404-2s2015</a> 
+	</li>
+	<br>
+	<li>
+	  <b>Parte</b> do trabalho pode ser feito em
+	  dupla.: <font color="red"> leia com *muita atenção* a <b>seção de
+	      Entrega e Avaliação</b>, no final do texto.</font>
+	</li>
+	<li>
+	  Makefile disponibilizado: <a href="http://www.ic.unicamp.br/%7Eedson/disciplinas/mc404/2015-2s/ab/labs/trab02/files/Makefile">Makefile</a>.
+	</li>
+      </ol>
+    <p></p>
+    
+    <hr>
+    <br>
+    <h2>Introdução</h2>
+
+    <p>
+      Neste segundo trabalho da disciplina, você vai desenvolver toda
+      as camadas de <i>software</i> responsáveis pelo controle do robô
+      Uóli. Estas camadas, ilustradas na Figura 1 são divididas em
+      três sub-camadas: (a) Sistema Operacional UóLi (SOUL), (b)
+      Biblioteca de Controle (BiCo), e (c) Lógica de Controle
+      (LoCo).
+    </p>
+    
+    <center>  
+      <img src="trab02_files/pilha_de_sw.png" alt="Pilha de SW">
+      <p>Figura 1: Pilha de <i>software</i> para controle do robô Uóli.</p>
+    </center>    
+
+    <p> A sub-camada SOUL é responsável pelo gerenciamento
+      do <i>hardware</i>, incluindo a configuração do <i>hardware</i>,
+      o tratamento de interrupções de <i>hardware</i> e
+      de <i>software</i>. Além disso, o SOUL deve prover um conjunto
+      de serviços para a sub-camada BiCo através de chamadas de
+      sistemas, ou <i>syscalls</i>. A sub-camada SOUL contém código
+      que será executado em modo <tt>supervisor</tt> e deve ser
+      implementada em linguagem de montagem.
+    </p>
+
+    <p> A sub-camada BiCo é responsável por prover uma interface de
+      programação amigável para a Lógica de Controle, a API de
+      Controle. Esta sub-camada também deve ser implementada em
+      linguagem de montagem, mas seu código será executado no modo
+      usuário e ligado com o código da sub-camada LoCo com o auxílio
+      do ligador (<i>linker</i>).
+    </p>
+
+    <p>
+      A sub-camada LoCo é responsável pela lógica de controle do
+      robô e deve invocar as funções definidas pela API de Controle e
+      implementadas pela BiCo.  Esta sub-camada deve ser implementada
+      em código na linguagem C e seu código será executado no modo
+      usuário. Como informado acima, o código da LoCo deverá ser
+      ligado ao código da BiCo com o ligador.
+    </p>
+
+    <h2>Sub-camada LoCo</h2>
+    
+    <p>
+      Como descrito acima, o código da sub-camada LoCo deve ser
+      implementado em linguagem C e deve fazer uso das rotinas
+      disponíveis na API de Controle para enviar comandos para o robô.
+      A API está descrita no arquivo
+      "<a href="http://www.ic.unicamp.br/%7Eedson/disciplinas/mc404/2015-2s/ab/labs/trab02/files/api_robot2.h">api_robot2.h</a>".
+    </p>
+    <p>
+      Você desenvolverá dois programas na linguagem C para a camada
+      LoCo: o segue-parede.c e o ronda.c.
+    </p>
+
+    <h3>Lógica de controle do programa <tt>segue-parede.c</tt></h3>
+
+    <p>
+      A lógica de controle do programa <tt>segue-parede.c</tt> deve ter dois modos de
+      operação: (a) <tt>busca-parede</tt> e (b) <tt>segue-parede</tt>.  
+      </p><ul>
+	<li>
+	  a) A lógica
+	  <tt>busca-parede</tt> é iniciada assim que o Uóli é ligado. Esta
+	  lógica deve fazer com que o Uóli ande em linha reta até se
+	  aproximar de uma parede (o Uóli não deve colidir com a
+	  parede). Após encontrar a parede, o Uóli deve ajustar sua
+	  posição de forma que a parede fique do lado esquerdo do mesmo.
+	</li>
+	<li>
+	  b) Uma vez que a posição foi ajustada, o
+	  modo <tt>segue-parede</tt> deve ser ativado. Neste modo, o
+	  Uóli deve andar para frente seguindo a traçado da parede, ou
+	  seja, sempre mantendo a parede à sua esquerda, ajustando o
+	  traçado à medida que a parede se distanciar ou ficar muito
+	  próxima do mesmo. Novamente, é importante que o Uóli não
+	  colida com as paredes do ambiente.
+	</li>
+      </ul>
+    <p></p>
+
+    <h3>Lógica de controle do programa <tt>ronda.c</tt></h3>
+
+    <p>
+      A lógica de controle de seu robô deve fazer com que o robô realize uma
+      ronda no ambiente. Para realizar a ronda, seu programa deve:
+      </p><ul>
+	<li>
+	  Fazer com que o robô ande em uma "espiral quadrada". Para
+	  isso, o robô deve andar um pouco para a frente, fazer uma
+	  curva de aproximadamente 90 graus para a direita, andar mais
+	  um pouco para a frente, fazer outra curva para a direita, e
+	  assim por diante. É importante que após cada curva, a
+	  distância percorrida para frente seja um pouco maior. A
+	  distância deve ser ajustada em unidades de tempo do sistema
+	  (veja abaixo). Para isso, você deve utilizar as rotinas
+	  de <tt>alarm</tt> para temporizar os movimentos. Seu robô
+	  deve ser configurado para que ele ande para frente por uma
+	  unidade de tempo até a primeira curva à direita, depois ande
+	  por 2 unidades de tempo para frente antes de realizar a
+	  próxima curva, e assim por diante, até atingir 50 unidades
+	  de tempo. A partir daí o robô deve iniciar uma nova ronda.
+	</li>
+	<li>
+	  Sua lógica deve verificar os sensores para garantir que o robô não colida
+	  com as paredes. Caso haja uma parece no traçado do robô, você deve
+	  ajustar o curso do robô girando-o para a direita, certificando-se que ele
+	  não colida com a parede.
+	</li>
+      </ul>
+    <p></p>	  
+
+    <h2>Sub-camada BiCo</h2>
+    
+    <p>
+      O código da sub-camada BiCo deve implementar as rotinas da API
+      de Controle em linguagem de montagem do ARM. A API está descrita
+      no arquivo "<a href="http://www.ic.unicamp.br/%7Eedson/disciplinas/mc404/2015-2s/ab/labs/trab02/files/api_robot2.h">api_robot2.h</a>". Para
+      controlar o <i>hardware</i>, o código deve realizar chamadas ao
+      systema, ou <i>syscalls</i>.  As <i>syscalls</i> são definidas
+      abaixo.
+    </p>
+
+    <h2>Sub-camada SOUL</h2>
+
+    <p>
+      A Sub-camada SOUL deve gerenciar o <i>hardware</i> do sistema e
+      prover serviços para a sub-camada BiCo através das chamadas de
+      sistemas.
+    </p>
+
+    <h3>Tempo do sistema (<i>system time</i>)</h3>
+
+    <p>
+      O SOUL possui um relógio interno que mantém o tempo do sistema,
+      ou <i>system time</i>.  O tempo do sistema deve ser iniciado com
+      0 sempre que o sistema for (re)iniciado e o mesmo deve ser
+      incrementado de 1 unidade a cada <tt>TIME_SZ</tt> ciclos do
+      relógio (<i>clock</i>) de periféricos (similar ao que foi
+      desenvolvido na atividade
+      de <a href="http://www.ic.unicamp.br/%7Eedson/disciplinas/mc404/2015-2s/ab/labs/lab08/lab08.html">laboratório 8</a>). O símbolo
+      <tt>TIME_SZ</tt> deve ser definido como uma constante
+      utilizando-se a diretiva .set no arquivo que gerencia as
+      interrupções do GPT. Utilize um valor razoável para que o tempo
+      do sistema não passe muito rápido nem muito devagar.
+    </p>
+
+    <h3>Atendendo chamadas de sistemas (<i>syscalls</i>)</h3>
+
+    <p>
+      Na atividade de <a href="http://www.ic.unicamp.br/%7Eedson/disciplinas/mc404/2015-2s/ab/labs/lab08/lab08.html">laboratório 8</a>
+      você implementou um pequeno programa em linguagem de montagem do
+      ARM para atender às interrupções de <i>hardware</i> do tipo IRQ. 
+      Nesse trabalho, você deve expandir a implementação anterior para atender
+      também às <b>interrupções de <i>software</i></b> (<i>syscalls</i>), disparadas 
+      pela instrução <tt>SVC</tt>. 
+    </p>
+
+    <p>
+      Na convenção do ARMv7 (ABI - <i>Application Binary
+      Interface</i>), para realizar uma chamada ao sistema, você deve
+      colocar o número da <i>syscall</i> no registrador <tt>R7</tt>, e
+      os parâmetros seguem a mesma convenção de uma chamada de função
+      comum (devem estar nos registradores <tt>R0</tt> a <tt>R3</tt>);
+      o valor de retorno é passado via registrador <tt>R0</tt>.  Para realizar
+      a chamada de sistema, o código de usuário utiliza a instrução
+      <tt>svc 0x0</tt>. Esta instrução irá gerar uma exceção e fará
+      com que o registrador <tt>PC</tt> aponte para a
+      posição <tt>base_vet</tt> + 0x08, em que <tt>base_vet</tt> é a
+      base do vetor de interrupções que é definido na
+      seção <tt>.iv</tt>.  Nesse ponto então, o processador troca o
+      modo para <tt>SUPERVISOR</tt> - a implementação de uma chamada
+      de sistema, portanto, é similar à implementação de interrupções
+      de <i>hardware</i>.
+    </p>
+
+    <p>
+      No entanto, você recebe em <tt>R7</tt> um valor que corresponde
+      ao número da <i>syscall</i> que se deseja chamar. O seu tratador
+      de chamadas de sistema deve, portanto, analisar o valor contido
+      nesse registrador e selecionar a rotina de tratamento adequada
+      (<tt>set_speed_motor, set_speed_motors</tt> ou outra). Lembre-se
+      que, para retornar do tratador de chamadas de sistema para o
+      código do usuário que invocou a <i>syscall</i>, você deve
+      utilizar a seguinte instrução especial:
+      
+      </p><pre>    movs pc, lr</pre>
+      
+      Essa instrução, além de retornar ao código que estava sendo
+      executado antes da interrupção, recupera o registrador CPSR
+      original, modificando o modo do processador para o modo corrente
+      antes da ocorrência da interrupção.
+    <p></p>
+
+    <h4>Descrição das <i>Syscalls</i></h4>
+
+    <p>
+      A tabela abaixo apresenta os dados das <i>syscalls</i> do sistema:
+    </p>
+
+    <p>
+      <table align="center" border="1">    
+        <tbody><tr>
+          <th> <i>Syscall</i> </th>
+          <th> Parâmetros </th>
+          <th> Retorno </th>      
+        </tr>
+        
+        <tr>
+          <td> <tt>read_sonar</tt>  <br> Código: 16 </td>
+          <td> R0: Identificador do sonar (valores válidos: 0 a 15). </td>
+          <td> R0: Valor obtido na leitura dos sonares; -1 caso o identificador do sonar seja inválido.</td>
+        </tr>
+
+        <tr>
+          <td> <tt>register_proximity_callback</tt>  <br> Código: 17 </td>
+          <td> 
+	    R0: Identificador do sonar (valores válidos: 0 a 15).
+	    <br>
+            R1: Limiar de distância (veja descrição em api_robot2.h).
+	    <br>
+            R2: ponteiro para função a ser chamada na ocorrência do alarme.
+	  </td>
+          <td>R0: -1 caso o número de <i>callbacks</i> máximo ativo no sistema
+            seja maior do que MAX_CALLBACKS. -2 caso o identificador do sonar seja inválido.
+	    Caso contrário retorna 0.</td>
+        </tr>
+        
+        <tr>
+          <td> <tt>set_motor_speed</tt>  <br> Código: 18</td>
+          <td>
+            R0: Identificador do motor (valores válidos 0 ou 1). <br>
+            R1: Velocidade.
+          </td>
+          <td>R0: -1 caso o identificador do motor seja inválido, -2 caso a velocidade seja inválida, 0 caso Ok.</td>
+        </tr>
+
+        <tr>
+          <td> <tt>set_motors_speed</tt>  <br> Código: 19</td>
+          <td>
+            R0: Velocidade para o motor 0. <br>
+            R1: Velocidade para o motor 1.
+          </td>        
+          <td>R0: -1 caso a velocidade para o motor 0 seja inválida, -2
+          caso a velocidade para o motor 1 seja inválida, 0 caso
+          Ok.</td>
+        </tr>
+
+        <tr>
+          <td> <tt>get_time</tt>  <br> Código: 20</td>
+          <td>
+	    -
+          </td>        
+          <td>R0: retorna o tempo do sistema.</td>
+        </tr>
+
+        <tr>
+          <td> <tt>set_time</tt>  <br> Código: 21</td>
+          <td>
+	    R0: tempo do sistema
+          </td>        
+          <td>
+	    -
+	  </td>
+        </tr>
+
+        <tr>
+          <td> <tt>set_alarm</tt>  <br> Código: 22</td>
+          <td>
+            R0: ponteiro para função a ser chamada na ocorrência do alarme.<br>
+            R1: tempo do sistema.
+          </td>        
+          <td>R0: -1 caso o número de alarmes máximo ativo no sistema
+          seja maior do que MAX_ALARMS. -2 caso o tempo seja menor do
+          que o tempo atual do sistema. Caso contrário retorna 0.</td>
+        </tr>
+
+      </tbody></table>  
+    </p>
+
+
+
+    <!--
+
+        <h2>UART</h2>
+
+
+    <p>Para utilizar a interface de comunicação serial UART, é preciso
+      primeiramente inicializar o dispositivo UART, assim como foi
+      feito com o TZIC e GPT no laboratório anterior. Para inicializar tal
+      dispositivo, deve-se seguir os <b>passos de 1 a 7</b> da seção 75.5.1 no
+      <i>datasheet</i> da UART, encontrado em <a href="../anexos/IMX53-uart.pdf">uart.pdf</a>.
+      Note que esse documento é bem grande (mais de 70 páginas), mas você apenas
+      irá utilizar o exemplo de inicialização e os endereços de memória dos registradores
+      da UART (seção 75.3, sétima página). Observe que o <i>datasheet</i> apresenta
+      informações das 4 UARTs	das placas i.MX53, contudo o simulador ARM apenas
+      implementa a <tt>UART1</tt> - assim, você sempre deve utilizar os valores referentes
+      à <tt>UART1</tt>.
+      
+      
+      
+      <h3>Transmissão de dados pela UART</h3>
+
+    <p>
+      Nessa seção, serão fornecidos os passos para transferir dados pela UART
+      via <i>polling</i>, isto é, sem utilizar interrupções.
+    </p>
+
+    <p>
+      Primeiro, verifique se o <i>bit</i> <tt>TRDY</tt> (<i>transmitter ready</i>), que é o
+      <i>bit</i> 13 do registrador <tt>UART STATUS REGISTER 1</tt> (<tt>UART1_USR1</tt>),
+      está definido como 1. Em caso positivo, temos que a ocupação da fila de transmissão
+      (<tt>TX_FIFO</tt>) está abaixo de um nível de segurança pré-configurado
+      (por você mesmo: lembre-se que você configurou a UART seguindo os passos do
+      <i>datasheet</i>!). Ou seja, você pode escrever um <i>byte</i> para transmissão
+      sem correr o risco de perder o dado pelo fato da fila estar cheia.
+      Essa fila possui 32 posições e armazena os caracteres que estão pendentes para
+      serem enviados - quando um <i>byte</i> é transmitido, um caractere é removido da fila.
+    </p>
+
+    <p>
+      Para escrever um caractere na fila <tt>TX_FIFO</tt> e escaloná-lo para ser
+      transmitido, basta realizar uma escrita no registrador <tt>UART1_UTXD</tt>. Ao
+      escrever nesse registrador, o dado vai para a fila <tt>TX_FIFO</tt>.
+      Caso a ocupação da fila fique alta (acima do nível de segurança), o
+      <i>bit</i> <tt>TRDY</tt> é automaticamente desligado (passa a valer 0).
+      Portanto, uma forma de realizar escrita pela UART é implementar um laço que
+      escreve <i>byte</i> por <i>byte</i>, realizando sucessivas escritas em
+      <tt>UART1_UTXD</tt>, sempre que o <i>bit</i> <tt>TRDY</tt> for igual a 1.
+      A condição de parada do laço ocorre caso o número de <i>bytes</i> escritos
+      já tenha alcançado o número solicitado pelo usuário no momento da chamada da
+      <i>syscall</i>&nbsp;&nbsp;<tt>write</tt>. Lembre-se que o relógio (<i>clock</i>) do
+      processador é MUITO mais alto do que o relógio dos periféricos, assim
+      a escrita ocorre de forma "lenta" se levarmos em conta o número de instruções
+      executadas pelo processador nesse tempo.
+    <p>
+
+
+
+
+
+      <h2>Dicas/Como executar o trabalho</h2>
+
+    <p>
+      Esse trabalho não exige grande quantidade de codificação; contudo, é preciso ficar
+      atento sobre todos os casos em que você pode ser interrompido e não conseguirá recuperar
+      facilmente o contexto, e cuidar para que o código fique correto mesmo nesses casos.
+      Você pode definir regiões críticas em que as interrupções são desabilitadas
+      temporariamente - um exemplo disso deve ocorrer na <i>syscall</i> <tt>write</tt>, pois
+      enquanto o texto de um processo está sendo escrito, não é desejável que ele seja interrompido e
+      outro processo comece a escrever no lugar. Por isso pode ser interessante desabilitar interrupções
+      no laço de escrita da UART.
+    </p>
+
+    <p>
+      Outro ponto importante no trabalho é o conceito de reentrância. Você deve
+      prestar atenção para o uso de variáveis globais no código de sistema, pois o
+      seu código deve funcionar mesmo quando for interrompido e outro processo chamar
+      a mesma função (entrar novamente na função). Repare que se você utiliza
+      variáveis globais sem proteger o acesso com travas, você pode estar no meio da
+      atualização de uma estrutura de dados complexa e ser interrompido - em seguida outro
+      processo chama a mesma função, que irá encontrar essa estrutura global em um
+      estado inconsistente e então poderá falhar.
+    </p>
+
+
+    <!--
+        <p>
+          Para executar o seu trabalho, é preciso utilizar o simulador ARM específico
+          para simulação em conjunto com o <i>Player</i>. Para tanto, você deve:
+        </p>
+
+        <ol>
+          <li>
+            Montar os arquivos usando o utilitário <tt>arm-eabi-as</tt>;
+          </li>
+          
+          <li>
+            Ligar os objetos gerados na etapa anterior com o <tt>arm-eabi-ld</tt> gerando um executável, por
+            exemplo, chamado <tt>raXXXXXX</tt>. Note que para ligar seu código de sistema, você deve seguir o mesmo procedimento do
+            <a href="./lab07.html">Laboratório 7</a>;
+          </li>
+          
+          <li>
+            Montar e ligar o código do <a href="../anexos/DummyUSER.tar.gz">DummyUSER</a>, gerando um executável
+            denominado, por exemplo, <tt>dummy_user</tt>;
+          </li>
+          
+          <li>
+            Criar uma imagem de cartão SD usando o utilitário <tt>mksd.sh</tt>, da seguinte forma:
+            <tt>mksd.sh --so raXXXXXX --user dummy_user</tt>;
+          </li>
+          
+          <li>
+            Executar a imagem do SD via simulador, usando o comando:
+            <tt>arm-sim --rom=dumboot.bin --sd=disk.img</tt>.
+          </li>		
+        </ol>
+
+
+        -->
+
+
+
+
+    <!-- ---------------------------------------------------------------------- -->
+
+    <h3>Iniciando o Sistema</h3>
+
+    <p>
+      Ao iniciar o sistema, o SOUL deve realizar duas atividades: (a)
+      configurar o <i>hardware</i> e (b) transferir a execução para a
+      aplicação de controle no modo usuário.
+    </p>
+
+    <h4>Configurando o <i>Hardware</i></h4>
+
+    <p>
+      Na atividade de laboratório <a href="http://www.ic.unicamp.br/%7Eedson/disciplinas/mc404/2015-2s/ab/labs/lab08/lab08.html">Laboratório 8</a> você
+      implementou trechos de código para configurar o GPT e o TZIC.
+      Nesse trabalho, você deverá expandir seu código para configurar
+      o GPIO.  Essas alterações vão permitir que o SOUL execute os
+      serviços oferecidos através das <i>Syscalls</i>.
+    </p>
+
+    <p>
+      O dispositivo de propósito geral de entradas e saídas, ou GPIO,
+      do sistema tem como função prover uma interface para conexão de
+      componentes externos, como periféricos de um robô, ao
+      processador.
+    </p>
+
+    <p>
+      O dispositivo está conectado ao barramento do sistema no
+      endereço base 0x53F84000.  Ele possui três registradores de
+      32 <i>bits</i>. Cada registrador possui um endereço que é igual
+      ao endereço base mais um certo deslocamento indicado na tabela
+      abaixo. 
+    </p>
+
+    <p>
+      <table align="center" border="1">
+        <tbody><tr>
+          <th>Registrador</th>
+          <th>Deslocamento</th>
+        </tr>
+        
+        <tr align="center">
+          <td> DR </td>
+          <td> 0x00 </td>
+        </tr>
+
+        <tr align="center">
+          <td> GDIR </td>
+          <td> 0x04 </td>
+        </tr>
+        
+        <tr align="center">
+          <td> PSR </td>
+          <td> 0x08 </td>
+        </tr>    
+      </tbody></table>
+    </p>
+
+    <p>
+      A seguir serão descritos cada um dos registradores:
+    </p>
+
+    <ol>
+
+      <li>
+        <b>DR: Registrador de dados (<i>Data Register</i>)</b>
+
+        <p>
+          Este registrador armazena os dados que serão direcionados às
+          linhas de saída ou os dados que vieram das linhas de entrada
+          para o GPIO, dependendo de como a linha esteja programada no
+          registrador GDIR (consulte a seguir).
+        </p>   
+        
+        <p>
+          O resultado de uma leitura deste registrador depende de como a linha (<i>bit</i>)
+          está configurada.
+        </p>
+        
+        <ul>
+          <li>
+	    Se o n-ésimo <i>bit</i> do GDIR (GDIR[n]) possuir o valor lógico igual a '1', então
+	    o retorno da leitura do <i>bit</i> DR[n] será o próprio conteúdo deste
+            registrador, que será escrito na linha de saída correspondente.
+          </li>
+          <li>
+            Se o <i>bit</i> GDIR[n] possuir valor lógico igual a '0', então o retorno da leitura
+            do <i>bit</i> DR[n] será o valor da linha de entrada correspondente.
+          </li>
+        </ul>
+        
+      </li>
+
+      <br>
+      
+      <li>
+        <b>GDIR: Registrador de direções (<i>Direction Register</i>)</b>
+        <p>
+          Este registrador controla as direções de cada uma das linhas de conexão do GPIO. Cada
+          <i>bit</i> especifica a direção de um sinal de uma das linhas do GPIO.
+          O mapeamento de cada linha para um dispositivo externo depende de
+          como esse dispositivo foi conectado ao GPIO.
+        </p>
+        <ul>
+          <li>
+            Se o GDIR[n] possuir valor lógico igual a '0', a n-ésima linha está configurada
+            como entrada.
+          </li>
+
+          <li>
+            Se o GDIR[n] possuir valor lógico igual a '1', a n-ésima linha está configurada
+            como saída.
+          </li>
+        </ul>
+      </li>
+
+      <br>
+      
+      <li>  
+        <b> PSR: Registrador de plataforma (<i>pad status register</i>)</b>
+        <p>
+          Este é um registrador disponível apenas para leitura. Cada <i>bit</i>
+          armazena o valor do sinal da linha de entrada correspondente.
+        </p><p>
+          </p><ul>
+            <li>
+              PSR[n] retorna o valor lógico do sinal da n-ésima linha.
+            </li>
+          </ul>      
+      </li>
+
+    </ol>
+
+    <p>
+      Ao todo, o GPIO do simulador fornece 32 pinos que foram conectados a dispositivos periféricos do robô. As conexões
+      foram realizadas de acordo com a tabela abaixo:
+    </p>
+
+    <p>
+      <table align="center" border="1">
+        <tbody><tr>
+          <th> Pino </th>
+          <th> Conexão      </th>
+          <th> Configuração </th>      
+        </tr>
+        
+        <tr align="center">
+          <td> 0 </td>
+          <td> FLAG </td>
+          <td> Entrada </td>      
+        </tr>
+
+        <tr align="center">
+          <td> 1 </td>
+          <td> TRIGGER </td>
+          <td> Saída </td>      
+        </tr>    
+
+        <tr align="center">
+          <td> 2 </td>
+          <td> SONAR_MUX[0] </td>
+          <td> Saída </td>      
+        </tr>    
+
+        <tr align="center">
+          <td> 3 </td>
+          <td> SONAR_MUX[1] </td>
+          <td> Saída </td>      
+        </tr>    
+
+        <tr align="center">
+          <td> 4 </td>
+          <td> SONAR_MUX[2] </td>
+          <td> Saída </td>      
+        </tr>    
+
+        <tr align="center">
+          <td> 5 </td>
+          <td> SONAR_MUX[3] </td>
+          <td> Saída </td>      
+        </tr>    
+
+        <tr align="center">
+          <td> 6 </td>
+          <td> SONAR_DATA[0] </td>
+          <td> Entrada </td>      
+        </tr>    
+
+        <tr align="center">
+          <td> 7 </td>
+          <td> SONAR_DATA[1] </td>
+          <td> Entrada </td>      
+        </tr>    
+
+        <tr align="center">
+          <td> 8 </td>
+          <td> SONAR_DATA[2] </td>
+          <td> Entrada </td>      
+        </tr>    
+
+        <tr align="center">
+          <td> 9 </td>
+          <td> SONAR_DATA[3] </td>
+          <td> Entrada </td>      
+        </tr>
+
+        <tr align="center">
+          <td> 10 </td>
+          <td> SONAR_DATA[4] </td>
+          <td> Entrada </td>      
+        </tr>    
+
+        <tr align="center">
+          <td> 11 </td>
+          <td> SONAR_DATA[5] </td>
+          <td> Entrada </td>      
+        </tr>    
+
+        <tr align="center">
+          <td> 12 </td>
+          <td> SONAR_DATA[6] </td>
+          <td> Entrada </td>      
+        </tr>     
+
+        <tr align="center">
+          <td> 13 </td>
+          <td> SONAR_DATA[7] </td>
+          <td> Entrada </td>      
+        </tr>    
+
+        <tr align="center">
+          <td> 14 </td>
+          <td> SONAR_DATA[8] </td>
+          <td> Entrada </td>      
+        </tr>    
+
+        <tr align="center">
+          <td> 15 </td>
+          <td> SONAR_DATA[9] </td>
+          <td> Entrada </td>      
+        </tr>    
+
+        <tr align="center">
+          <td> 16 </td>
+          <td> SONAR_DATA[10] </td>
+          <td> Entrada </td>      
+        </tr>    
+
+        <tr align="center">
+          <td> 17 </td>
+          <td> SONAR_DATA[11] </td>
+          <td> Entrada </td>      
+        </tr>    
+
+        <tr align="center">
+          <td> 18 </td>
+          <td> MOTOR0_WRITE </td>
+          <td> Saída </td>      
+        </tr>
+        
+        <tr align="center">
+          <td> 19 </td>
+          <td> MOTOR0_SPEED[0] </td>
+          <td> Saída </td>      
+        </tr>    
+
+        <tr align="center">
+          <td> 20 </td>
+          <td> MOTOR0_SPEED[1] </td>
+          <td> Saída </td>      
+        </tr>    
+
+        <tr align="center">
+          <td> 21 </td>
+          <td> MOTOR0_SPEED[2] </td>
+          <td> Saída </td>      
+        </tr>
+        
+        <tr align="center">
+          <td> 22 </td>
+          <td> MOTOR0_SPEED[3] </td>
+          <td> Saída </td>      
+        </tr>
+        
+        <tr align="center">
+          <td> 23 </td>
+          <td> MOTOR0_SPEED[4] </td>
+          <td> Saída </td>      
+        </tr>
+        
+        <tr align="center">
+          <td> 24 </td>
+          <td> MOTOR0_SPEED[5] </td>
+          <td> Saída </td>      
+        </tr>    
+
+        <tr align="center">
+          <td> 25 </td>
+          <td> MOTOR1_WRITE </td>
+          <td> Saída </td>      
+        </tr>
+        
+        <tr align="center">
+          <td> 26 </td>
+          <td> MOTOR1_SPEED[0] </td>
+          <td> Saída </td>      
+        </tr>    
+
+        <tr align="center">
+          <td> 27 </td>
+          <td> MOTOR1_SPEED[1] </td>
+          <td> Saída </td>      
+        </tr>    
+
+        <tr align="center">
+          <td> 28 </td>
+          <td> MOTOR1_SPEED[2] </td>
+          <td> Saída </td>      
+        </tr>
+        
+        <tr align="center">
+          <td> 29 </td>
+          <td> MOTOR1_SPEED[3] </td>
+          <td> Saída </td>      
+        </tr>
+        
+        <tr align="center">
+          <td> 30 </td>
+          <td> MOTOR1_SPEED[4] </td>
+          <td> Saída </td>      
+        </tr>
+        
+        <tr align="center">
+          <td> 31 </td>
+          <td> MOTOR1_SPEED[5] </td>
+          <td> Saída </td>      
+        </tr>    
+        
+      </tbody></table>
+    </p>
+
+    <h4>Transferindo a execução para a aplicação de controle</h4>
+
+    <p> 
+      Como visto acima, após a configuração do <i>hardware</i>, o
+      SOUL deve transferir o fluxo de execução para a aplicação de
+      controle. Lembre-se que a aplicação de controle deve ser
+      executada no modo usuário, dessa forma, o SOUL deve modificar o
+      modo de operação para <tt>USER</tt>.
+    </p>
+    <p>
+      Além de ajustar o modo de operação, o SOUL deve configurar uma
+      pilha para o processo da aplicação de controle.
+    </p>
+
+    <h2>Apêndice - <i>Hardware</i></h2>
+
+    Nesta seção vamos apresentar o funcionamento básico do <i>hardware</i> criado para o robô,
+    tanto a parte eletrônica, quanto os aspectos necessários para o controle e programação
+    destes periféricos.
+
+    <h3>Sonares</h3>
+
+    <p>
+      Como visto em laboratórios anteriores, o robô dispõe de 16 sonares, sendo 8 frontais e
+      8 traseiros. Cada um destes sonares trata-se de um dispositivo
+      <a href="http://www.ic.unicamp.br/%7Eedson/disciplinas/mc404/2015-2s/ab/labs/trab02/files/sonar/HCSR04.pdf">HC SR04</a>, que é controlado via dois sinais, o
+      <i>TRIGGER</i> e o <i>ECHO</i>. Basicamente, o <i>TRIGGER</i> é um sinal lógico que quando
+      levado de um nível baixo para um nível alto, mantendo este por pelo menos 10 ms, e
+      novamente colocando em um nível baixo, faz o sonar obter uma nova leitura.
+    </p>
+
+    <p>
+      A leitura retornada pelo sonar, é dada pela quantidade de tempo em que o sinal
+      de <i>ECHO</i> fica no nível alto. Dessa forma, podemos obter um valor proporcional
+      para a distância, baseado em uma fórmula disponibilizada pelo fabricante do dispositivo.
+    </p>
+
+    <p>
+      Para facilitar a comunicação com estes 16 sonares, um novo <i>hardware</i> foi proposto.
+      O esquemático deste <i>hardware</i> é ilustrado na figura abaixo:
+    </p>
+
+    <p>
+      </p><center>  
+        <img src="trab02_files/sonar2.jpg" alt="Sonares" height="1000" width="1000">
+      </center>    
+    <p></p>
+
+    <p>
+      Como o acesso aos sonares é feito individualmente, o circuito de controle conta com um
+      multiplexador e um demultiplexador, para ambos casos utilizamos o circuito integrado
+      (CI) <a href="http://www.ic.unicamp.br/%7Eedson/disciplinas/mc404/2015-2s/ab/labs/trab02/files/sonar/74HC_HCT4067.pdf">74HC4067</a>. Estes dois CIs são
+      identificados no esquemático como IC3 para o multiplexador e IC2 para o demultiplexador.
+    </p>
+
+    <p>
+      Outro CI importante para o funcionamento do circuito, é o contador binário
+      <a href="http://www.ic.unicamp.br/%7Eedson/disciplinas/mc404/2015-2s/ab/labs/trab02/files/sonar/MC14040B-D.PDF">MC14040B</a>, que no momento em que o TRIGGER
+      é levado para o nível lógico '1', zera sua contagem. Quando o sinal de ECHO for
+      para o nível lógico '1', ele inicia sua contagem, quando este sinal retorna para '0',
+      a contagem é  parada.
+      Dessa forma temos na saída deste contador, pinos SONAR_DATA[11:0], um valor
+      de 12 <i>bits</i> proporcional a distância encontrada pelo sonar.
+      A frequência de <i>clock</i> para este contador é calibrada para nunca zerar sua saída
+      durante o momento que o ECHO for '1',
+      mesmo que o sonar selecionado não encontre obstáculo.
+      
+    </p>
+
+    <p>
+      Para auxiliar na obtenção da informação, um sinal adicional é colocado, informando
+      quando o contador terminou sua contagem, trata-se do sinal de FLAG.
+      Sempre que uma leitura for solicitada, após o sinal de TRIGGER retornar para '0', basta
+      esperar o momento que o sinal de FLAG for para '1', garantindo que a leitura
+      foi completada.
+    </p>
+
+    <p>
+      O fluxograma abaixo nos dá uma visão mais clara de como podemos realizar uma
+      leitura via algum dos sonares.
+    </p>
+
+    <p>
+      </p><center>
+        <img src="trab02_files/sonar_fluxo.jpg" alt="Fluxograma Sonar">
+      </center>    
+    <p></p>
+
+
+    <h3>Motores</h3>
+
+    <p>
+      O robô possui dois motores, um para cada roda. O controle de velocidade para estes
+      motores é implementado usando
+      <a href="http://en.wikipedia.org/wiki/Pulse-width_modulation">PWM</a>. Um <i>hardware</i>
+      específico é proposto para realizar o controle do PWM, onde para cada motor fornecemos
+      6 <i>bits</i> para quantificar a velocidade e mais um <i>bit</i> responsável por
+      habilitar a escrita dessa nova velocidade. O esquemático pode ser encontrado na
+      figura abaixo:  
+    </p>
+
+    <p>
+      </p><center>
+        <img src="trab02_files/pwm.png" alt="Esquemático dos Motores" height="1000" width="1000">
+      </center>    
+    <p></p>
+
+    <p>
+      Para gerar o PWM, utilizamos o
+      CI <a href="http://www.ic.unicamp.br/%7Eedson/disciplinas/mc404/2015-2s/ab/labs/trab02/files/pwm_files/69921234fc.pdf">LTC6992</a>, que
+      converte um valor analógico, de 0V até 1V, para uma largura de
+      pulso proporcional. Pra obtermos o valor analógico
+      correspondente, utilizamos o conversor digital-analógico
+      <a href="http://www.ic.unicamp.br/%7Eedson/disciplinas/mc404/2015-2s/ab/labs/trab02/files/pwm_files/tlc7226.pdf">TLC7226</a>, onde os
+      6 <i>bits</i> vão mapear o PWM e o <i>bit</i> de <i>write</i>,
+      quando colocado em '0', habilita o novo valor.
+    </p>
+
+
+    <!-- ------------------------------------------------------------- -->
+
+
+    <h2>Entrega e Avaliação</h2>
+
+    <ul>
+      <li>
+	
+        Utilize a plataforma SuSy para entrega: <a target="_blank" href="https://susy.ic.unicamp.br:9999/mc404ab/T02">
+	  https://susy.ic.unicamp.br:9999/mc404ab/T02</a>.
+      </li>
+      <li>
+	Os trabalhos podem ser individuais ou em dupla. Para os
+	trabalhos feitos em dupla:
+	<ul>
+	  <li>	
+	    <font color="red">
+	    <b>MUITO IMPORTANTE: apenas a camada do SOUL pode ser
+	      realizada em conjunto pela dupla. O desenvolvimento e a
+	      submissão das outras camadas (BICO e LOCO) devem ser
+	      realizados individualmente!</b>. 
+	    </font>
+	  </li>
+	  <li>
+	    <b>
+              Ambos os componentes da dupla devem submeter o trabalho
+	      no SuSy, cada um enviando sua versão individual do
+	      código das camadas BICO e LOCO.
+	    </b>
+	  </li>
+	</ul>
+      </li>
+      <li>
+        Deve ser entregue APENAS um arquivo de nome raXXXXXX.tar.gz,
+        que por sua vez deve conter um diretório raXXXXXX que inclua
+        todos os arquivos de código do seu trabalho, um Makefile e
+        um arquivo chamado grupo.txt
+      </li>
+      <li>
+        O Makefile deve gerar o arquivo <tt>disk.img</tt> como regra
+        padrão.
+      </li>
+      <li>
+        O arquivo <b>grupo.txt</b> deve conter o RA dos integrantes da
+        dupla, ou apenas um RA, no caso de trabalho individual. Os
+        valores devem ser da forma raZZZZZZ e devem ser separados por
+        uma quebra de linha; nenhum outro dado deve ser colocado nesse
+        arquivo.
+      </li>
+      
+      <li>
+	Seu código deve estar bem documentado, incluindo a descrição
+	das rotinas e trechos de código não triviais.
+      </li>
+
+      <li>
+	O arquivo <a href="http://www.ic.unicamp.br/%7Eedson/disciplinas/mc404/2015-2s/ab/labs/trab02/files/worlds_mc404.zip">worlds_mc404.zip</a>
+	contém os cenários nos quais os robôs serão testados.
+      </li>
+
+      <li>
+	Os símbolos <tt>MAX_ALARMS</tt> e <tt>MAX_CALLBACKS</tt> devem
+	ser definidos como constantes utilizando-se a diretiva
+	.set. Defina ambos com o valor padrão 8.
+      </li>
+      
+      <li>
+        <b>
+          Qualquer tentativa de fraude implicará média 0 na
+          disciplina, para todos os envolvidos.
+        </b>
+      </li>
+    </ul>
+
+  
+  
+
+</body></html>
