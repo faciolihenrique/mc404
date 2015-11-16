@@ -1,23 +1,8 @@
 @ Henrique Noronha Facioli
 
 @@@ All teh sets @@@
-@ System time
-.set TIME_SZ,               100
-@ GPT Constants
-.set GPT_BASE,              0x53FA0000
-.set GPT_CR,                0x00
-.set GPT_PR,                0x04
-.set GPT_SR,                0x08
-.set GPT_IR,                0x0C
-.set GPT_OCR1,              0x10
-.set GPT_CR_VALUE,          0x00000041
-@ TZIC Constants
-.set TZIC_BASE,             0x0FFFC000
-.set TZIC_INTCTRL,          0x0
-.set TZIC_INTSEC1,          0x84
-.set TZIC_ENSET1,           0x104
-.set TZIC_PRIOMASK,         0xC
-.set TZIC_PRIORITY9,        0x424
+
+
 
 
 @@@ Start @@@
@@ -42,7 +27,7 @@ TIME_COUNTER: .word 0x0
 
 RESET_HANDLER:
     @ Zera o contador
-    ldr r2, =CONTADOR  @lembre-se de declarar esse contador em uma secao de dados!
+    ldr r2, =TIME_COUNTER  @lembre-se de declarar esse contador em uma secao de dados!
     mov r0,#0
     str r0,[r2]
 
@@ -50,6 +35,17 @@ RESET_HANDLER:
     ldr r0, =interrupt_vector
     mcr p15, 0, r0, c12, c0, 0
 
+@ System time
+.set TIME_SZ,               100
+
+@ GPT Constants
+.set GPT_BASE,              0x53FA0000
+.set GPT_CR,                0x00
+.set GPT_PR,                0x04
+.set GPT_SR,                0x08
+.set GPT_IR,                0x0C
+.set GPT_OCR1,              0x10
+.set GPT_CR_VALUE,          0x00000041
 
 SET_GPT:
     @Send data do GPT hardware
@@ -72,6 +68,13 @@ SET_GPT:
     ldr r0, =1
     str r0, [r1, #GPT_IR]
 
+@ TZIC Constants
+.set TZIC_BASE,             0x0FFFC000
+.set TZIC_INTCTRL,          0x0
+.set TZIC_INTSEC1,          0x84
+.set TZIC_ENSET1,           0x104
+.set TZIC_PRIOMASK,         0xC
+.set TZIC_PRIORITY9,        0x424
 
 @ Código TZIC
 SET_TZIC:
