@@ -50,7 +50,7 @@ loop_read_sonars:
     b read_sonars
     str r0, [r0, #4]
     cmp r5, #16
-    blt loop
+    blt loop_read_sonars
 
     ldmfd sp!, {r7, pc}
 
