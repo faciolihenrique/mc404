@@ -90,7 +90,7 @@ CALLBACK_POINTERS_VECTOR: .fill 32
 
 @ Variáveis que armazenam informações de alarmes
 N_ALARMS: .word 0x0
-ALARMS_TIMER: .fill 32
+ALARMS_TIMER: .word 0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0
 ALARMS_FUNCTIONS: .fill 32
 
 
@@ -245,9 +245,11 @@ loop_irq_alarms:
     sub r9, r9, #0x01
 
     @ Verifica se já chegou no tempo desejado
-    cmp r2, r5
+    cmp r5 , r2
 
-    @ Limpa a posição de execução e carrega em r6 o end da função
+    blt loop_irq_alarms
+    
+    @ Limpa a posição de execução e carrega em r6  end da função
     ldrge r5, =0x0
     strge r5, [r0, r3]
 
@@ -265,7 +267,7 @@ loop_irq_alarms:
     str r2, [r1]
 
 	msr CPSR_c, #USER_MODE
-    blxge r6
+    blx r6
 
 	mov r7, #23
 	svc 0x0
@@ -281,9 +283,9 @@ return_from_alarm_svc:
     ldmfd sp!, {r0-r11, lr}
 
     @ Remove a função executada do contador de funçoes ativas
-    ldrge r10, [r8]
-    subge r10, r10, #0x01
-    strge r10, [r8]
+    ldr r10, [r8]
+    sub r10, r10, #0x01
+    str r10, [r8]
 
     add r3, r3, #0x04
     b loop_irq_alarms
@@ -421,7 +423,7 @@ SYS_READ_SONAR:
     ldr r5, =GPIO_BASE
 
     @ Verifica se o valor passado é valido
-    cmp r0, #15
+    cmp r0, #16
     bhi erro_sonar
     
     @ Faz um clear dos bits do sonar, do trigger e do FLAG no GDIR
@@ -474,7 +476,7 @@ SYS_READ_SONAR:
         ldr r2, =PSR_FLAG
         bic r2, r1, r2
         cmp r2, #0x01
-        bne read_sonar_loop
+        bne read_sonar_loop 
 
     @ Pega os valores da leitura do sonar
     ldr r6, =PSR_READ_SONAR
@@ -711,5 +713,5 @@ RETURN_ALARM_FUNCTION:
 
 .align 4
 RETURN_CALLBACK_FUNCTION:
-    msr CPSR_c, IRQ_MODE
+    msr CPSR_c,IRQ_MODE
     b return_from_callback_svc
